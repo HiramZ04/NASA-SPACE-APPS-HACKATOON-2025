@@ -1,6 +1,4 @@
-# app.py — ExoCimarron (Space Apps MVP) — versión completa y pulida para jueces
-# Incluye: Landing "card blanca + acento", sidebar-botones, chat sin delay/duplicados,
-# Info/Juego/Predictor, y CTAs con títulos visibles y tooltips.
+# app.py — ExoCimarron (Space Apps MVP)
 
 import os, json, requests, joblib
 import numpy as np
@@ -126,12 +124,11 @@ _selected = st.sidebar.radio("Secciones", PAGES, index=idx, label_visibility="vi
 if _selected != _current:
     st.session_state.page = _selected
 
-# 👇 AÑADE ESTAS DOS LÍNEAS
 page = st.session_state.get("page", ROUTES["home"])
 
 
 # =========================
-# HOME (landing para jueces no técnicos)
+# HOME
 # =========================
 def render_home():
     HOME_CSS = """
@@ -224,19 +221,8 @@ def render_home():
         show_img(IMAGES.get("astro_gif", IMAGES.get("kepler")), caption=None)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.write("")
-    f1, f2, f3 = st.columns(3)
-    with f1:
-        st.info("**Dato:** Kepler ayudó a confirmar **+2,700** exoplanetas.", icon="✨")
-    with f2:
-        st.info("**Curiosidad:** algunos ‘Júpiter calientes’ orbitan en **~3 días**.", icon="🪐")
-    with f3:
-        st.info("**Tip:** un tránsito baja el brillo solo **unas ppm** (poquísimo).", icon="📉")
-
-
-
 # =========================
-# CHAT (fluido, sin rerun, sin "Limpiar chat" ni tip)
+# CHAT
 # =========================
 def render_chat():
     st.title(f"💬 Chat — {BRAND}")
@@ -398,7 +384,7 @@ Si una petición es ambigua, asume la interpretación más útil y explícitala 
 
 
 # =========================
-# INFO — Método de tránsito (didáctico)
+# INFO — Método de tránsito
 # =========================
 def render_info():
     st.title("Aprende — Más")
@@ -556,7 +542,7 @@ def render_game():
     st.plotly_chart(fig, use_container_width=True)
 
     if show_hints:
-        st.info("**Pistas:** tránsitos reales suelen ser poco profundos (ppm), simétricos, con forma **U**; falsos a menudo muestran dips **V** agudos o modulación alrededor.")
+        st.info("**Pistas:** tránsitos reales suelen ser profundos (ppm), simétricos, con forma **U**; falsos a menudo muestran dips **V** agudos o modulación alrededor.")
 
     b1,b2,b3 = st.columns(3)
     guess = None
@@ -595,7 +581,7 @@ def render_predictor():
     import plotly.graph_objects as go
     import streamlit as st
 
-    st.title(f"🔮 {BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
+    st.title(f"{BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
 
     MODELS_DIR   = "models"
     METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # métricas precomputadas
@@ -636,7 +622,7 @@ def render_predictor():
     feats   = load_features()
 
     # -------- Leaderboard (tabla + barras)
-    st.subheader("🏆 Leaderboard de modelos")
+    st.subheader("Leaderboard de modelos")
     rows = []
     for m in available:
         acc = metrics.get(m, {}).get("accuracy", None)
@@ -726,7 +712,7 @@ def render_predictor():
             "koi_impact": 0.2, "koi_time0bk": 900.0, "koi_steff": 5750.0, "koi_slogg": 4.45,
             "koi_srad": 1.0, "koi_smet": 0.0, "koi_kepmag": 14.0, "duty_cycle": 10.0/(365*24), "rp_rs": 0.0091
         },
-        "🪐 Neptuno": {
+        "🔵 Neptuno-like": {
             "koi_period": 30.0, "koi_duration": 6.0, "koi_depth": 2000.0, "koi_model_snr": 25.0,
             "koi_impact": 0.3, "koi_time0bk": 700.0, "koi_steff": 5400.0, "koi_slogg": 4.4,
             "koi_srad": 1.0, "koi_smet": -0.1, "koi_kepmag": 13.5, "duty_cycle": 6.0/(30*24), "rp_rs": 0.035
