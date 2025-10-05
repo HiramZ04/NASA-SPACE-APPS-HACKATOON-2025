@@ -511,70 +511,126 @@ def render_game():
             new_round()
 
 
-
 # =========================
-# PREDICTOR — Selector de modelo + presets + gauge
+# PREDICTOR — Leaderboard + selector + multi-predicción
 # =========================
 def render_predictor():
     st.title(f"🔮 {BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
 
     import os, json, joblib
     import pandas as pd
+    import plotly.graph_objects as go
 
     MODELS_DIR = "models"
-    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # {"LogisticRegression": {"accuracy": 0.86}, ...}
+    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # precomputado fuera del app
 
-    # Detecta automáticamente los modelos disponibles en ./models/*.pkl
+    # -------- Helpers
     def list_models():
-        if not os.path.isdir(MODELS_DIR):
-            return []
-        names = []
-        for fn in os.listdir(MODELS_DIR):
-            if fn.lower().endswith(".pkl"):
-                names.append(os.path.splitext(fn)[0])
-        return sorted(names)
+        if not os.path.isdir(MODELS_DIR): return []
+        return sorted([os.path.splitext(fn)[0] for fn in os.listdir(MODELS_DIR) if fn.lower().endswith(".pkl")])
 
     @st.cache_resource(show_spinner=False)
-    def load_model_and_feats(model_name: str):
-        mdl = joblib.load(os.path.join(MODELS_DIR, f"{model_name}.pkl"))
+    def load_model(model_name: str):
+        return joblib.load(os.path.join(MODELS_DIR, f"{model_name}.pkl"))
+
+    @st.cache_resource(show_spinner=False)
+    def load_features():
         try:
             with open(os.path.join(MODELS_DIR, "features.json"), "r") as f:
-                cols = json.load(f)
+                return json.load(f)
         except Exception:
-            cols = None
-        return mdl, cols
+            return None
 
     @st.cache_data(show_spinner=False)
     def load_metrics():
         try:
             with open(METRICS_PATH, "r") as f:
-                return json.load(f)
+                return json.load(f)  # dict: {model: {"accuracy": 0.xx, "f1": ...}}
         except Exception:
             return {}
 
-    # ---- UI: selector de modelo + accuracy
+    # -------- Detectar modelos y métricas
     available = list_models()
     if not available:
-        st.error("No encontré modelos en `./models`. Asegúrate de guardar `*.pkl` en esa carpeta.")
+        st.error("No encontré modelos en `./models`. Sube tus *.pkl a esa carpeta.")
         st.stop()
 
-    csel = st.columns(2)
-    with csel[0]:
-        model_name = st.selectbox("Modelo de clasificación", available, index=0,
-                                  help="Elige el clasificador que deseas usar")
-    model, feat_json = load_model_and_feats(model_name)
-
     metrics = load_metrics()
-    acc = metrics.get(model_name, {}).get("accuracy", None)
-    with csel[1]:
+    feats = load_features()
+
+    # -------- Leaderboard (tabla + barra de accuracy)
+    st.subheader("🏆 Leaderboard de modelos")
+    rows = []
+    for m in available:
+        acc = metrics.get(m, {}).get("accuracy", None)
+        rows.append({"Modelo": m, "Accuracy": acc})
+    leaderboard = pd.DataFrame(rows).sort_values(by="Accuracy", ascending=False, na_position="last")
+    c1, c2 = st.columns([1.2, 1])
+    with c1:
+        st.dataframe(leaderboard, use_container_width=True)
+    with c2:
+    # --- BARRAS legibles con márgenes seguros ---
+        acc_pct = (leaderboard["Accuracy"].fillna(0) * 100).round(1)
+
+    fig = go.Figure(go.Bar(
+        x=leaderboard["Modelo"],
+        y=acc_pct,
+        text=[f"{v:.1f}%" for v in acc_pct],
+        textposition="outside",               # etiquetas fuera
+        marker=dict(
+            color=["#60A5FA", "#34D399", "#A78BFA", "#F59E0B", "#F472B6", "#7DD3FC"][:len(acc_pct)],
+            line=dict(color="rgba(255,255,255,0.35)", width=1.2)
+        )
+    ))
+
+    # Headroom arriba para que no corte el texto outside
+    ymax = float(acc_pct.max() if len(acc_pct) else 100)
+
+    # Márgenes más amplios (especialmente abajo) + automargin en ejes
+    fig.update_layout(
+        template="plotly_dark",
+        height=340,
+        margin=dict(l=30, r=50, t=30, b=100),  # <- sube b si aún corta (p.ej. 120)
+        yaxis_title="Accuracy (%)",
+        xaxis_title=""
+    )
+    fig.update_xaxes(
+        tickangle=-25,
+        automargin=True,
+        tickfont=dict(size=16, family="Inter, sans-serif")
+    )
+    fig.update_yaxes(
+        range=[0, ymax * 1.15],   # espacio extra arriba para las etiquetas
+        tickfont=dict(size=14),
+        automargin=True
+    )
+
+    # Permite que el texto/barra se renderice fuera del eje sin recortarse
+    fig.update_traces(cliponaxis=False)
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+
+    # Top recomendado
+    recommended = leaderboard.iloc[0]["Modelo"] if len(leaderboard) else available[0]
+    use_rec = st.toggle("Usar recomendado automáticamente", value=True, help="Selecciona el mejor por Accuracy")
+    default_index = available.index(recommended) if (use_rec and recommended in available) else 0
+
+    # -------- Selector de modelo (sigue existiendo, pero puede autoseleccionar el mejor)
+    sel_col, acc_col = st.columns([1, 1])
+    with sel_col:
+        model_name = st.selectbox("Modelo activo", available, index=default_index, help="Modelo que usará el gauge y el mensaje")
+    with acc_col:
+        acc = metrics.get(model_name, {}).get("accuracy", None)
         if acc is not None:
-            st.metric("Accuracy (val/test)", f"{acc*100:.2f}%")
+                st.metric("Accuracy (val/test)", f"{acc*100:.2f}%")
         else:
-            st.info("Accuracy: N/A (agrega `models/metrics.json`)")
+                st.info("Accuracy: N/A (agrega `models/metrics.json`)")
 
     st.caption("Ajusta valores o usa un preset. Rangos típicos de Kepler.")
 
-    # ---- Presets
+    # -------- Presets
     presets = {
         "🌍 Tierra-like": {
             "koi_period": 365.0, "koi_duration": 10.0, "koi_depth": 84.0, "koi_model_snr": 12.0,
@@ -598,7 +654,7 @@ def render_predictor():
             st.session_state.predictor_values.update(values)
             st.toast(f"Preset aplicado: {label}")
 
-    # ---- Sliders (idéntico a tu versión)
+    # -------- Sliders (como los tienes)
     slider_spec = [
         ("Periodo orbital (días)",            "koi_period",     0.5,   500.0,  20.0,   0.1,  "Periodo entre tránsitos."),
         ("Duración del tránsito (horas)",     "koi_duration",   0.2,    30.0,   5.0,   0.1,  "Tiempo que dura el tránsito."),
@@ -614,8 +670,7 @@ def render_predictor():
         ("Duty cycle (duración/periodo)",     "duty_cycle",     0.0,     0.2,   0.01,  0.001,"Fracción del tiempo en tránsito."),
         ("Razón de radios rp/rs",             "rp_rs",          0.005,   0.20,  0.05,  0.001,"~√(depth)."),
     ]
-
-    desired_order = (feat_json if feat_json else [s[1] for s in slider_spec])
+    desired_order = (feats if feats else [s[1] for s in slider_spec])
     spec_by_name = {s[1]: s for s in slider_spec}
     slider_names_ordered = [c for c in desired_order if c in spec_by_name]
 
@@ -634,66 +689,76 @@ def render_predictor():
         values["koi_depth"] = float(values.get("rp_rs", 0.0)**2 * 1e6)
         st.session_state["sl_koi_depth"] = values["koi_depth"]
 
-    # ---- Arma X con el orden correcto de columnas
+    # -------- Construir X con orden correcto
     X = pd.DataFrame([[values.get(c, 0.0) for c in slider_names_ordered]], columns=slider_names_ordered)
-    if hasattr(model, "feature_names_in_"):
-        for miss in model.feature_names_in_:
-            if miss not in X.columns: X[miss] = 0.0
-        X = X[model.feature_names_in_]
-    elif feat_json:
-        for miss in feat_json:
-            if miss not in X.columns: X[miss] = 0.0
-        X = X[feat_json]
+    # Si el modelo guardó feature_names_in_, reordenaremos al vuelo cuando hagamos cada predicción
+    # Si no, usamos features.json como orden base
+    def align_X_for(model):
+        if hasattr(model, "feature_names_in_"):
+            Z = X.copy()
+            for miss in model.feature_names_in_:
+                if miss not in Z.columns: Z[miss] = 0.0
+            return Z[model.feature_names_in_]
+        elif feats:
+            Z = X.copy()
+            for miss in feats:
+                if miss not in Z.columns: Z[miss] = 0.0
+            return Z[feats]
+        return X
 
     st.markdown("---")
-    cL, cR = st.columns([1,1])
 
-    with cL:
-        explain = st.expander("¿Qué mira el modelo?", expanded=False)
-        with explain:
-            st.write("""
-            • **Profundidad** y **rp/rs** (tamaño relativo del planeta)  
-            • **Duración** y **duty cycle** (forma/ancho del tránsito)  
-            • **SNR** (qué tan clara es la señal)  
-            • Propiedades **estelares** (temperatura, log g, radio, magnitud)  
-            • **Periodo orbital** (repetición del tránsito)
-            """)
-        if st.button("🚀 Predecir", use_container_width=True):
-            try:
-                yhat = int(model.predict(X)[0])
-                label = "CONFIRMED" if yhat==1 else "FALSE POSITIVE"
-                conf_txt, conf_val = "", None
-                if hasattr(model, "predict_proba"):
-                    proba = model.predict_proba(X)[0]
-                    conf_val = float(proba[1]) if yhat==1 else float(proba[0])
-                    conf_txt = f"Confianza ≈ {conf_val*100:.1f}%"
-                (st.success if yhat==1 else st.error)(f"{BRAND} dice: **{label}** · {conf_txt}")
+    # -------- Botón: predecir con TODOS y mostrar tabla
+    if st.button("🚀 Predecir con todos los modelos", use_container_width=True):
+        rows_pred = []
+        for m in available:
+            mdl = load_model(m)
+            Xi = align_X_for(mdl)
+            yhat = int(mdl.predict(Xi)[0])
+            prob = None
+            if hasattr(mdl, "predict_proba"):
+                p = mdl.predict_proba(Xi)[0]
+                prob = float(p[1]) if yhat==1 else float(p[0])
+            rows_pred.append({
+                "Modelo": m,
+                "Predicción": "CONFIRMED" if yhat==1 else "FALSE POSITIVE",
+                "Confianza": (None if prob is None else f"{prob*100:.1f}%"),
+                "Accuracy(ref)": (None if metrics.get(m, {}).get("accuracy") is None else f"{metrics[m]['accuracy']*100:.2f}%")
+            })
 
-                if conf_val is not None:
-                    gfig = go.Figure(go.Indicator(
-                        mode="gauge+number",
-                        value=conf_val*100,
-                        number={"suffix":"%"},
-                        gauge={"axis":{"range":[0,100]}, "bar":{"thickness":0.35}},
-                        domain={"x":[0,1],"y":[0,1]}
-                    ))
-                    gfig.update_layout(template="plotly_dark", height=280, margin=dict(l=10,r=10,t=20,b=10))
-                    st.plotly_chart(gfig, use_container_width=True)
+        # Ordenar: primero los que predicen CONFIRMED con mayor confianza, luego el resto
+        dfp = pd.DataFrame(rows_pred)
+        st.subheader("Resultados para este input")
+        st.dataframe(dfp, use_container_width=True)
 
-                res = {"label": label, "confidence": (conf_val*100 if conf_val is not None else None), "model": model_name}
-                st.code(json.dumps({"input": values, "prediction": res}, indent=2), language="json")
+        # Gauge SOLO del modelo seleccionado (para mantener tu UI original)
+        mdl_sel = load_model(model_name)
+        Xi_sel = align_X_for(mdl_sel)
+        yhat_sel = int(mdl_sel.predict(Xi_sel)[0])
+        label_sel = "CONFIRMED" if yhat_sel==1 else "FALSE POSITIVE"
+        conf_val = None
+        if hasattr(mdl_sel, "predict_proba"):
+            psel = mdl_sel.predict_proba(Xi_sel)[0]
+            conf_val = float(psel[1]) if yhat_sel==1 else float(psel[0])
+        (st.success if yhat_sel==1 else st.error)(f"{BRAND} ({model_name}) dice: **{label_sel}** · " + (f"Confianza ≈ {conf_val*100:.1f}%" if conf_val is not None else ""))
+        if conf_val is not None:
+            gfig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=conf_val*100,
+                number={"suffix":"%"},
+                gauge={"axis":{"range":[0,100]}, "bar":{"thickness":0.35}},
+                domain={"x":[0,1],"y":[0,1]}
+            ))
+            gfig.update_layout(template="plotly_dark", height=280, margin=dict(l=10,r=10,t=20,b=10))
+            st.plotly_chart(gfig, use_container_width=True)
 
-            except Exception as e:
-                st.error(f"Error al predecir: {e}")
-
-    with cR:
-        st.markdown("**Consejos rápidos**")
+    # Tips
+    with st.expander("Consejos rápidos"):
         st.write("""
-        - Prueba `rp/rs` entre 0.02–0.12 y `depth` 200–20000 ppm.
-        - `SNR` alto ayuda a confirmar; `impacto b` cercano a 1 suele dar forma V.
-        - Si quieres consistencia física: activa *Sincronizar profundidad con rp/rs*.
+        - Usa el leaderboard para comparar modelos sin cambiar de vista.
+        - El botón **Predecir con todos** te da, para este input, la salida de todos los modelos a la vez.
+        - Activa **Usar recomendado** para que el select te elija el mejor automáticamente (por Accuracy).
         """)
-
 
 
 
