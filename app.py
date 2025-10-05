@@ -62,12 +62,12 @@ html_embed(GLOBAL_STYLE, height=0)
 # ROUTES / NAV / STATE
 # =========================
 ROUTES = {
-    "home":    "🏠 Inicio",
-    "learn":   "📚 Aprende Mas",
-    "predict": "🔮 Predice IA",
-    "game":    "🎮 Juega ",
-    "chat":    "💬 Chatea con ExoCimarron",
-    "about":   "🚀 Acerca del MVP",
+    "home":    "Inicio",
+    "learn":   "Aprende Mas",
+    "predict": "Predice IA",
+    "game":    "Juega ",
+    "chat":    "Chatea con ExoCimarron",
+    "about":   "Acerca del MVP",
 }
 PAGES = list(ROUTES.values())
 
@@ -194,25 +194,25 @@ def render_home():
         c1, c2, c3, c4 = st.columns(4)
 
         with c1:
-            st.button("📚 Aprende", use_container_width=True,
+            st.button("Aprende", use_container_width=True,
                       help="Método de tránsito explicado fácil",
                       on_click=goto_page, args=(ROUTES["learn"],))
             
 
         with c2:
-            st.button("🔮 Predice", use_container_width=True,
+            st.button("Predice", use_container_width=True,
                       help="Predice CONFIRMED vs FALSE POSITIVE",
                       on_click=goto_page, args=(ROUTES["predict"],))
             
 
         with c3:
-            st.button("🎮 Juega", use_container_width=True,
+            st.button("Juega", use_container_width=True,
                       help="Mini-juego: ¿PLANETA o NO PLANETA?",
                       on_click=goto_page, args=(ROUTES["game"],))
             
 
         with c4:
-            st.button("💬 Chat", use_container_width=True,
+            st.button("Chat", use_container_width=True,
                       help="Habla con ExoCimarron",
                       on_click=goto_page, args=(ROUTES["chat"],))
             
