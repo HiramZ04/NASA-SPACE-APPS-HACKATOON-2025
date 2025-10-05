@@ -22,6 +22,14 @@ IMAGES = {
     "kepler":     "https://images-assets.nasa.gov/image/PIA18904/PIA18904~large.jpg?w=1920&h=1536&fit=clip&crop=faces%2Cfocalpoint",
     "transit":    "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2003/06/planet_transit/9798645-3-eng-GB/Planet_transit_pillars.jpg",
     "astro_gif":  "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDBnNDF6Zmh3anF3bGRrMjRya2Q3M2hibXZjNGJ3NGtnZWh0YThmMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlO4V8iCRME3i0g/giphy.gif",
+    "research":   "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2VyOTJsdGdibTJicGIwdm52YWV3dDJ5dndib20zN3Rxd2JpY2M2cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0GsNMsRwDKKMjiwIe5/giphy.gif",
+    "dataset":    "https://github.com/luigicast/images/blob/main/goodImageDataset.png?raw=true",
+    "ai_model":   "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDJ5bDU3bmxqYThzOThwa2I3M21rY2lnZDhsNm42b3YxMGdsNzRwMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LR5ZBwZHv02lmpVoEU/giphy.gif",
+    "chatbot":    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWE1MzRyM2g3ZG50dnZodzYyNmhhZmt5ZGYwOHJvanlnZmw0dGhxbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/S60CrN9iMxFlyp7uM8/giphy.gif",
+    "simulator":  "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTZ1MWo4aTQwaDJkbXZnd2JnZjV2ZmtvaW83YmpmMzEyNzNncjJieiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hsubjoiDroLg4AYyUO/giphy.gif",
+    "testing":    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjhremVrb3JybnA4eDU0em43eXd5cHc5bHV4OWRqdmFvdHprbXV2eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gw3IWyGkC0rsazTi/giphy.gif",
+    "presentation": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExam83bzgxZTd6aHpuYmQxczloeWdhaHoxbzczOWVyOWI2ZDR0MWEycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/U3dIoNBOyfTkA/giphy.gif",
+    "team":       "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExa24zZW53bGRsNjZobG9pdWlqbXcxbHdubHZqZTkyeWVxMHR5c3BoMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9yssegcqq1WDlPKdP4/giphy.gif",
 }
 
 def show_img(src, caption=None):
@@ -836,20 +844,129 @@ def render_predictor():
 # ABOUT
 # =========================
 def render_about():
-    st.title("🚀 Acerca del MVP")
+    st.title("Acerca del MVP")
     st.markdown(f"""
     <div class="block">
       <p><b>{BRAND}</b> combina ciencia, juego e IA para explicar el método de tránsito de forma accesible.</p>
+      <p>Funcionalidades principales:</p>
       <ul>
-        <li>Chat didáctico</li>
-        <li>Juego de curvas de luz</li>
-        <li>Simulador de tránsitos</li>
-        <li>Predictor binario (CONFIRMED vs FALSE POSITIVE)</li>
+        <li>Chat didáctico con modelo local</li>
+        <li>Juego interactivo de curvas de luz</li>
+        <li>Simulador de tránsitos planetarios</li>
+        <li>Predictor binario (CONFIRMED vs FALSE POSITIVE) basado en múltiples modelos</li>
       </ul>
-      <p>Reto: <b>A World Away — Hunting for Exoplanets with AI</b> (NASA Space Apps 2025).</p>
+      <p>Reto: <b>A World Away (Hunting for Exoplanets with AI)</b> NASA Space Apps 2025.</p>
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("### Timeline del desarrollo")
+
+    timeline_data = [
+        {
+            "date": "2025-10-04",
+            "phase": "Creación del proyecto y revisión literaria",
+            "description": "Investigación sobre el método de tránsito, análisis del dataset de Kepler y estudio de algoritmos de clasificación. El dataset de Kepler resultó ser la mejor alternativa por su calidad, volumen de datos y documentación completa.",
+            "image": "research"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Exploración de Datos",
+            "description": "Se exploraron los datos de cada set de datos, incluyendo Kepler, para así poder comprender los datos a utilizar para la reacipon del modelo.",
+            "image": "dataset"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Desarrollo del modelo de IA",
+            "description": "Entrenamiento y validación de múltiples modelos de machine learning. Gradient Boost demostró ser la mejor alternativa debido a su capacidad de manejar datos desbalanceados y su robustez ante features ruidosas típicas de señales astronómicas.",
+            "image": "ai_model"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Desarrollo del chatbot",
+            "description": "Implementación del sistema conversacional usando Ollama con modelo Gemma3. Integración de conocimiento específico sobre exoplanetas y el método de tránsito mediante prompts especializados.",
+            "image": "chatbot"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Simulador y juego",
+            "description": "Construcción del simulador interactivo de tránsitos planetarios con curvas sintéticas realistas. Desarrollo del juego educativo para identificar señales planetarias vs falsos positivos.",
+            "image": "simulator"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Testing y optimización",
+            "description": "Pruebas exhaustivas de cada módulo, optimización de rendimiento, validación de predicciones contra datos conocidos y refinamiento de la interfaz de usuario.",
+            "image": "testing"
+        },
+        {
+            "date": "2025-10-05",
+            "phase": "Integración final",
+            "description": "Unificación de todos los componentes en una aplicación coherente, ajustes finales de diseño y preparación de documentación técnica.",
+            "image": "team"
+        },
+        {
+            "date": "2025-10-05",
+            "phase": "Presentación",
+            "description": "Despliegue de la aplicación MVP completa, preparación de materiales de demostración y documentación final para jueces del Space Apps Challenge.",
+            "image": "presentation"
+        }
+    ]
+
+    st.markdown("""
+    <style>
+    /* Contenedor principal de cada bloque de timeline */
+    .timeline-row {
+        display: flex;
+        align-items: center;   /* 🔸 centra verticalmente imagen y texto */
+        margin-bottom: 40px;   /* separación entre filas */
+    }
+    /* Columna de imagen */
+    .img-container {
+        flex: 1;               /* ancho relativo */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    /* Imagen */
+    img.timeline {
+        width: 260px;          /* 🔸 ajusta tamaño a gusto */
+        height: auto;
+        border-radius: 14px;
+        object-fit: contain;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+    }
+    /* Columna de texto */
+    .text-container {
+        flex: 2;
+        padding-left: 20px;
+    }
+    /* Bloque de texto */
+    .block {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+    # 🧠 Bucle principal del timeline
+    for item in timeline_data:
+        st.markdown(f"""
+        <div class="timeline-row">
+            <div class="img-container">
+                <img class="timeline" src="{IMAGES[item['image']]}" />
+            </div>
+            <div class="text-container">
+                <div class="block">
+                    <p style="color: #FF9D2E; font-weight: 800; margin: 0 0 4px 0;">{item["date"]}</p>
+                    <h4 style="margin: 0 0 8px 0;">{item["phase"]}</h4>
+                    <p style="margin: 0; color: #9bb3c8;">{item["description"]}</p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
     st.markdown("### Galería")
     g1,g2,g3 = st.columns(3)
     with g1: show_img(IMAGES["nasa_logo"],   caption="NASA")
