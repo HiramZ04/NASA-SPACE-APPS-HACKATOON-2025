@@ -24,6 +24,14 @@ IMAGES = {
     "kepler":     "https://images-assets.nasa.gov/image/PIA18904/PIA18904~large.jpg?w=1920&h=1536&fit=clip&crop=faces%2Cfocalpoint",
     "transit":    "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2003/06/planet_transit/9798645-3-eng-GB/Planet_transit_pillars.jpg",
     "astro_gif":  "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDBnNDF6Zmh3anF3bGRrMjRya2Q3M2hibXZjNGJ3NGtnZWh0YThmMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlO4V8iCRME3i0g/giphy.gif",
+    "research":   "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2VyOTJsdGdibTJicGIwdm52YWV3dDJ5dndib20zN3Rxd2JpY2M2cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0GsNMsRwDKKMjiwIe5/giphy.gif",
+    "dataset":    "https://github.com/luigicast/images/blob/main/goodImageDataset.png?raw=true",
+    "ai_model":   "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDJ5bDU3bmxqYThzOThwa2I3M21rY2lnZDhsNm42b3YxMGdsNzRwMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LR5ZBwZHv02lmpVoEU/giphy.gif",
+    "chatbot":    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWE1MzRyM2g3ZG50dnZodzYyNmhhZmt5ZGYwOHJvanlnZmw0dGhxbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/S60CrN9iMxFlyp7uM8/giphy.gif",
+    "simulator":  "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTZ1MWo4aTQwaDJkbXZnd2JnZjV2ZmtvaW83YmpmMzEyNzNncjJieiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hsubjoiDroLg4AYyUO/giphy.gif",
+    "testing":    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjhremVrb3JybnA4eDU0em43eXd5cHc5bHV4OWRqdmFvdHprbXV2eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gw3IWyGkC0rsazTi/giphy.gif",
+    "presentation": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExam83bzgxZTd6aHpuYmQxczloeWdhaHoxbzczOWVyOWI2ZDR0MWEycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/U3dIoNBOyfTkA/giphy.gif",
+    "team":       "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExa24zZW53bGRsNjZobG9pdWlqbXcxbHdubHZqZTkyeWVxMHR5c3BoMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9yssegcqq1WDlPKdP4/giphy.gif",
 }
 
 def show_img(src, caption=None):
@@ -114,11 +122,6 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
-
-
-
-
 st.sidebar.title("🪐 ExoCimarron")
 _current = st.session_state.get("page", ROUTES["home"])
 idx = PAGES.index(_current) if _current in PAGES else 0
@@ -126,7 +129,6 @@ _selected = st.sidebar.radio("Secciones", PAGES, index=idx, label_visibility="vi
 if _selected != _current:
     st.session_state.page = _selected
 
-# 👇 AÑADE ESTAS DOS LÍNEAS
 page = st.session_state.get("page", ROUTES["home"])
 
 
@@ -189,7 +191,6 @@ def render_home():
             unsafe_allow_html=True
         )
 
-        # --- CTAs con títulos visibles y tooltip ---
         st.markdown("#### Explora")
         c1, c2, c3, c4 = st.columns(4)
 
@@ -197,27 +198,21 @@ def render_home():
             st.button("Aprende", use_container_width=True,
                       help="Método de tránsito explicado fácil",
                       on_click=goto_page, args=(ROUTES["learn"],))
-            
 
         with c2:
             st.button("Predice", use_container_width=True,
                       help="Predice CONFIRMED vs FALSE POSITIVE",
                       on_click=goto_page, args=(ROUTES["predict"],))
-            
 
         with c3:
             st.button("Juega", use_container_width=True,
                       help="Mini-juego: ¿PLANETA o NO PLANETA?",
                       on_click=goto_page, args=(ROUTES["game"],))
-            
 
         with c4:
             st.button("Chat", use_container_width=True,
                       help="Habla con ExoCimarron",
                       on_click=goto_page, args=(ROUTES["chat"],))
-            
-
-       
 
     with col2:
         st.markdown('<div class="art-wrap"><div class="accent"></div></div>', unsafe_allow_html=True)
@@ -229,10 +224,9 @@ def render_home():
     with f1:
         st.info("**Dato:** Kepler ayudó a confirmar **+2,700** exoplanetas.", icon="✨")
     with f2:
-        st.info("**Curiosidad:** algunos ‘Júpiter calientes’ orbitan en **~3 días**.", icon="🪐")
+        st.info("**Curiosidad:** algunos 'Júpiter calientes' orbitan en **~3 días**.", icon="🪐")
     with f3:
         st.info("**Tip:** un tránsito baja el brillo solo **unas ppm** (poquísimo).", icon="📉")
-
 
 
 # =========================
@@ -248,17 +242,14 @@ def render_chat():
         "Para preguntas básicas, evita tecnicismos."
     )
 
-    # Estado inicial
     if "chat_msgs" not in st.session_state or st.session_state.chat_msgs is None:
         st.session_state.chat_msgs = [{"role": "system", "content": SYSTEM_MSG}]
 
-    # Config Ollama
     HOST   = os.environ.get("EXOCIM_OLLAMA_HOST", "http://localhost:11434").rstrip("/")
     MODEL  = os.environ.get("EXOCIM_MODEL", "gemma3:latest")
     TEMP   = float(os.environ.get("EXOCIM_TEMP", "0.3"))
     MAXTOK = int(float(os.environ.get("EXOCIM_MAXTOK", "512")))
 
-    # Reusar conexión HTTP
     if "http" not in st.session_state:
         st.session_state.http = requests.Session()
 
@@ -290,7 +281,6 @@ def render_chat():
                 if data.get("done"):
                     break
 
-    # Sugerencias (chips) sólo si no hay historial de usuario
     if len(st.session_state.chat_msgs) == 1:
         st.markdown("""
         <div class="block">
@@ -315,7 +305,6 @@ def render_chat():
             if st.button("¿Cómo los encontramos?"):
                 st.session_state._chip_prompt = "¿Cómo encontramos exoplanetas? Dame una explicación fácil."
 
-    # Render del historial (antes del input)
     for m in st.session_state.chat_msgs[1:]:
         if m["role"] == "user":
             with st.chat_message("user", avatar="🧑‍🚀"):
@@ -324,18 +313,15 @@ def render_chat():
             with st.chat_message("assistant", avatar="🐏"):
                 st.markdown(_format_asst(m["content"]))
 
-    # Barra de entrada SIEMPRE visible
     chip_prompt = st.session_state.pop("_chip_prompt", None)
     typed_text  = st.chat_input("Escríbele a ExoCimarron…", key="chatbox")
     user_text   = chip_prompt or typed_text
 
     if user_text:
-        # turno del usuario
         st.session_state.chat_msgs.append({"role": "user", "content": user_text})
         with st.chat_message("user", avatar="🧑‍🚀"):
             st.markdown(user_text)
 
-        # turno del asistente (stream)
         with st.chat_message("assistant", avatar="🐏"):
             placeholder = st.empty()
             full = ""
@@ -351,10 +337,7 @@ def render_chat():
                 placeholder.markdown(_format_asst(full))
 
         st.session_state.chat_msgs.append({"role": "assistant", "content": full})
-        st.stop()   # evita rerender completo
-
-
-
+        st.stop()
 
 
 # =========================
@@ -377,7 +360,7 @@ def render_info():
             """)
             st.latex(r"\text{depth} \approx \left(\frac{R_p}{R_\star}\right)^2")
             st.markdown("""
-            - **Duración**: cuántas horas dura el “eclipse”.
+            - **Duración**: cuántas horas dura el "eclipse".
             - **Periodo**: cada cuántos días se repite.
             """)
         with c2:
@@ -399,7 +382,7 @@ def render_info():
             - **Depth (ppm)** ~ \( (R_p/R_\star)^2 \).  
             - **Duración** ↔ ancho del valle.  
             - **Periodo** ↔ repetición.  
-            - **Impacto (b)**: 0 centrado (forma **U**), cercano a 1 “rozando” (más **V**).
+            - **Impacto (b)**: 0 centrado (forma **U**), cercano a 1 "rozando" (más **V**).
             """)
 
     with tab3:
@@ -424,7 +407,7 @@ def render_info():
             for i, xi in enumerate(x):
                 if ingress <= xi <= egress:
                     frac = abs((xi-center)/(width/2))
-                    shape = (1 - vshape*frac)  # U ↔ V
+                    shape = (1 - vshape*frac)
                     y[i] = 1.0 - depth*shape
             if noise > 0: y += np.random.normal(0.0, noise, size=n)
             return x, y, ingress, egress
@@ -455,6 +438,7 @@ def render_info():
         m5.metric("Radio planeta", f"{Rp_Rearth:.1f} R⊕")
         m6.metric("Impacto (b)", f"{b_impact:.2f}")
         st.caption("Modelo didáctico (sin oscurecimiento de limbo).")
+
 
 # =========================
 # GAME — Caza exoplanetas
@@ -554,14 +538,9 @@ def render_game():
 def render_predictor():
     st.title(f"🔮 {BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
 
-    import os, json, joblib
-    import pandas as pd
-    import plotly.graph_objects as go
-
     MODELS_DIR = "models"
-    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # precomputado fuera del app
+    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")
 
-    # -------- Helpers
     def list_models():
         if not os.path.isdir(MODELS_DIR): return []
         return sorted([os.path.splitext(fn)[0] for fn in os.listdir(MODELS_DIR) if fn.lower().endswith(".pkl")])
@@ -582,11 +561,10 @@ def render_predictor():
     def load_metrics():
         try:
             with open(METRICS_PATH, "r") as f:
-                return json.load(f)  # dict: {model: {"accuracy": 0.xx, "f1": ...}}
+                return json.load(f)
         except Exception:
             return {}
 
-    # -------- Detectar modelos y métricas
     available = list_models()
     if not available:
         st.error("No encontré modelos en `./models`. Sube tus *.pkl a esa carpeta.")
@@ -595,7 +573,6 @@ def render_predictor():
     metrics = load_metrics()
     feats = load_features()
 
-    # -------- Leaderboard (tabla + barra de accuracy)
     st.subheader("🏆 Leaderboard de modelos")
     rows = []
     for m in available:
@@ -606,68 +583,54 @@ def render_predictor():
     with c1:
         st.dataframe(leaderboard, use_container_width=True)
     with c2:
-    # --- BARRAS legibles con márgenes seguros ---
         acc_pct = (leaderboard["Accuracy"].fillna(0) * 100).round(1)
-
-    fig = go.Figure(go.Bar(
-        x=leaderboard["Modelo"],
-        y=acc_pct,
-        text=[f"{v:.1f}%" for v in acc_pct],
-        textposition="outside",               # etiquetas fuera
-        marker=dict(
-            color=["#60A5FA", "#34D399", "#A78BFA", "#F59E0B", "#F472B6", "#7DD3FC"][:len(acc_pct)],
-            line=dict(color="rgba(255,255,255,0.35)", width=1.2)
+        fig = go.Figure(go.Bar(
+            x=leaderboard["Modelo"],
+            y=acc_pct,
+            text=[f"{v:.1f}%" for v in acc_pct],
+            textposition="outside",
+            marker=dict(
+                color=["#60A5FA", "#34D399", "#A78BFA", "#F59E0B", "#F472B6", "#7DD3FC"][:len(acc_pct)],
+                line=dict(color="rgba(255,255,255,0.35)", width=1.2)
+            )
+        ))
+        ymax = float(acc_pct.max() if len(acc_pct) else 100)
+        fig.update_layout(
+            template="plotly_dark",
+            height=340,
+            margin=dict(l=30, r=50, t=30, b=100),
+            yaxis_title="Accuracy (%)",
+            xaxis_title=""
         )
-    ))
+        fig.update_xaxes(
+            tickangle=-25,
+            automargin=True,
+            tickfont=dict(size=16, family="Inter, sans-serif")
+        )
+        fig.update_yaxes(
+            range=[0, ymax * 1.15],
+            tickfont=dict(size=14),
+            automargin=True
+        )
+        fig.update_traces(cliponaxis=False)
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Headroom arriba para que no corte el texto outside
-    ymax = float(acc_pct.max() if len(acc_pct) else 100)
-
-    # Márgenes más amplios (especialmente abajo) + automargin en ejes
-    fig.update_layout(
-        template="plotly_dark",
-        height=340,
-        margin=dict(l=30, r=50, t=30, b=100),  # <- sube b si aún corta (p.ej. 120)
-        yaxis_title="Accuracy (%)",
-        xaxis_title=""
-    )
-    fig.update_xaxes(
-        tickangle=-25,
-        automargin=True,
-        tickfont=dict(size=16, family="Inter, sans-serif")
-    )
-    fig.update_yaxes(
-        range=[0, ymax * 1.15],   # espacio extra arriba para las etiquetas
-        tickfont=dict(size=14),
-        automargin=True
-    )
-
-    # Permite que el texto/barra se renderice fuera del eje sin recortarse
-    fig.update_traces(cliponaxis=False)
-
-    st.plotly_chart(fig, use_container_width=True)
-
-
-
-    # Top recomendado
     recommended = leaderboard.iloc[0]["Modelo"] if len(leaderboard) else available[0]
     use_rec = st.toggle("Usar recomendado automáticamente", value=True, help="Selecciona el mejor por Accuracy")
     default_index = available.index(recommended) if (use_rec and recommended in available) else 0
 
-    # -------- Selector de modelo (sigue existiendo, pero puede autoseleccionar el mejor)
     sel_col, acc_col = st.columns([1, 1])
     with sel_col:
         model_name = st.selectbox("Modelo activo", available, index=default_index, help="Modelo que usará el gauge y el mensaje")
     with acc_col:
         acc = metrics.get(model_name, {}).get("accuracy", None)
         if acc is not None:
-                st.metric("Accuracy (val/test)", f"{acc*100:.2f}%")
+            st.metric("Accuracy (val/test)", f"{acc*100:.2f}%")
         else:
-                st.info("Accuracy: N/A (agrega `models/metrics.json`)")
+            st.info("Accuracy: N/A (agrega `models/metrics.json`)")
 
     st.caption("Ajusta valores o usa un preset. Rangos típicos de Kepler.")
 
-    # -------- Presets
     presets = {
         "🌍 Tierra-like": {
             "koi_period": 365.0, "koi_duration": 10.0, "koi_depth": 84.0, "koi_model_snr": 12.0,
@@ -691,7 +654,6 @@ def render_predictor():
             st.session_state.predictor_values.update(values)
             st.toast(f"Preset aplicado: {label}")
 
-    # -------- Sliders (como los tienes)
     slider_spec = [
         ("Periodo orbital (días)",            "koi_period",     0.5,   500.0,  20.0,   0.1,  "Periodo entre tránsitos."),
         ("Duración del tránsito (horas)",     "koi_duration",   0.2,    30.0,   5.0,   0.1,  "Tiempo que dura el tránsito."),
@@ -726,10 +688,8 @@ def render_predictor():
         values["koi_depth"] = float(values.get("rp_rs", 0.0)**2 * 1e6)
         st.session_state["sl_koi_depth"] = values["koi_depth"]
 
-    # -------- Construir X con orden correcto
     X = pd.DataFrame([[values.get(c, 0.0) for c in slider_names_ordered]], columns=slider_names_ordered)
-    # Si el modelo guardó feature_names_in_, reordenaremos al vuelo cuando hagamos cada predicción
-    # Si no, usamos features.json como orden base
+    
     def align_X_for(model):
         if hasattr(model, "feature_names_in_"):
             Z = X.copy()
@@ -745,7 +705,6 @@ def render_predictor():
 
     st.markdown("---")
 
-    # -------- Botón: predecir con TODOS y mostrar tabla
     if st.button("🚀 Predecir con todos los modelos", use_container_width=True):
         rows_pred = []
         for m in available:
@@ -763,12 +722,10 @@ def render_predictor():
                 "Accuracy(ref)": (None if metrics.get(m, {}).get("accuracy") is None else f"{metrics[m]['accuracy']*100:.2f}%")
             })
 
-        # Ordenar: primero los que predicen CONFIRMED con mayor confianza, luego el resto
         dfp = pd.DataFrame(rows_pred)
         st.subheader("Resultados para este input")
         st.dataframe(dfp, use_container_width=True)
 
-        # Gauge SOLO del modelo seleccionado (para mantener tu UI original)
         mdl_sel = load_model(model_name)
         Xi_sel = align_X_for(mdl_sel)
         yhat_sel = int(mdl_sel.predict(Xi_sel)[0])
@@ -789,7 +746,6 @@ def render_predictor():
             gfig.update_layout(template="plotly_dark", height=280, margin=dict(l=10,r=10,t=20,b=10))
             st.plotly_chart(gfig, use_container_width=True)
 
-    # Tips
     with st.expander("Consejos rápidos"):
         st.write("""
         - Usa el leaderboard para comparar modelos sin cambiar de vista.
@@ -798,30 +754,143 @@ def render_predictor():
         """)
 
 
-
 # =========================
 # ABOUT
 # =========================
 def render_about():
-    st.title("🚀 Acerca del MVP")
+    st.title("Acerca del MVP")
     st.markdown(f"""
     <div class="block">
       <p><b>{BRAND}</b> combina ciencia, juego e IA para explicar el método de tránsito de forma accesible.</p>
+      <p>Funcionalidades principales:</p>
       <ul>
-        <li>Chat didáctico</li>
-        <li>Juego de curvas de luz</li>
-        <li>Simulador de tránsitos</li>
-        <li>Predictor binario (CONFIRMED vs FALSE POSITIVE)</li>
+        <li>Chat didáctico con modelo local</li>
+        <li>Juego interactivo de curvas de luz</li>
+        <li>Simulador de tránsitos planetarios</li>
+        <li>Predictor binario (CONFIRMED vs FALSE POSITIVE) basado en múltiples modelos</li>
       </ul>
-      <p>Reto: <b>A World Away — Hunting for Exoplanets with AI</b> (NASA Space Apps 2025).</p>
+      <p>Reto: <b>A World Away (Hunting for Exoplanets with AI)</b> NASA Space Apps 2025.</p>
     </div>
     """, unsafe_allow_html=True)
+
+    st.markdown("### Timeline del desarrollo")
+    
+    timeline_data = [
+        {
+            "date": "2025-10-04",
+            "phase": "Creación del proyecto y revisión literaria",
+            "description": "Investigación sobre el método de tránsito, análisis del dataset de Kepler y estudio de algoritmos de clasificación. El dataset de Kepler resultó ser la mejor alternativa por su calidad, volumen de datos y documentación completa.",
+            "image": "research"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Exploración de Datos",
+            "description": "Se exploraron los datos de cada set de datos, incluyendo Kepler, para así poder comprender los datos a utilizar para la reacipon del modelo.",
+            "image": "dataset"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Desarrollo del modelo de IA",
+            "description": "Entrenamiento y validación de múltiples modelos de machine learning. Gradient Boost demostró ser la mejor alternativa debido a su capacidad de manejar datos desbalanceados y su robustez ante features ruidosas típicas de señales astronómicas.",
+            "image": "ai_model"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Desarrollo del chatbot",
+            "description": "Implementación del sistema conversacional usando Ollama con modelo Gemma3. Integración de conocimiento específico sobre exoplanetas y el método de tránsito mediante prompts especializados.",
+            "image": "chatbot"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Simulador y juego",
+            "description": "Construcción del simulador interactivo de tránsitos planetarios con curvas sintéticas realistas. Desarrollo del juego educativo para identificar señales planetarias vs falsos positivos.",
+            "image": "simulator"
+        },
+        {
+            "date": "2025-10-04",
+            "phase": "Testing y optimización",
+            "description": "Pruebas exhaustivas de cada módulo, optimización de rendimiento, validación de predicciones contra datos conocidos y refinamiento de la interfaz de usuario.",
+            "image": "testing"
+        },
+        {
+            "date": "2025-10-05",
+            "phase": "Integración final",
+            "description": "Unificación de todos los componentes en una aplicación coherente, ajustes finales de diseño y preparación de documentación técnica.",
+            "image": "team"
+        },
+        {
+            "date": "2025-10-05",
+            "phase": "Presentación",
+            "description": "Despliegue de la aplicación MVP completa, preparación de materiales de demostración y documentación final para jueces del Space Apps Challenge.",
+            "image": "presentation"
+        }
+    ]
+
+    st.markdown("""
+    <style>
+    /* Contenedor principal de cada bloque de timeline */
+    .timeline-row {
+        display: flex;
+        align-items: center;   /* 🔸 centra verticalmente imagen y texto */
+        margin-bottom: 40px;   /* separación entre filas */
+    }
+
+    /* Columna de imagen */
+    .img-container {
+        flex: 1;               /* ancho relativo */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Imagen */
+    img.timeline {
+        width: 260px;          /* 🔸 ajusta tamaño a gusto */
+        height: auto;
+        border-radius: 14px;
+        object-fit: contain;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Columna de texto */
+    .text-container {
+        flex: 2;
+        padding-left: 20px;
+    }
+
+    /* Bloque de texto */
+    .block {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+    # 🧠 Bucle principal del timeline
+    for item in timeline_data:
+        st.markdown(f"""
+        <div class="timeline-row">
+            <div class="img-container">
+                <img class="timeline" src="{IMAGES[item['image']]}" />
+            </div>
+            <div class="text-container">
+                <div class="block">
+                    <p style="color: #FF9D2E; font-weight: 800; margin: 0 0 4px 0;">{item["date"]}</p>
+                    <h4 style="margin: 0 0 8px 0;">{item["phase"]}</h4>
+                    <p style="margin: 0; color: #9bb3c8;">{item["description"]}</p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("### Galería")
     g1,g2,g3 = st.columns(3)
     with g1: show_img(IMAGES["nasa_logo"],   caption="NASA")
     with g2: show_img(IMAGES["kepler"],      caption="Kepler")
     with g3: show_img(IMAGES["transit"],     caption="Tránsito (ESA)")
+
 
 # =========================
 # ROUTER
