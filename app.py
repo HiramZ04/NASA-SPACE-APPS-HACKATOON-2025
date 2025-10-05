@@ -10,7 +10,7 @@ from streamlit.components.v1 import html as html_embed
 # =========================
 # CONFIG / BRANDING
 # =========================
-BRAND = "ExoCimarron"
+BRAND = "ExoVision"
 st.set_page_config(page_title=f"{BRAND} — Space Apps MVP", page_icon="🪐", layout="wide")
 
 # =========================
@@ -125,7 +125,7 @@ st.sidebar.markdown("""
 
 
 
-st.sidebar.title("🪐 ExoCimarron")
+st.sidebar.title("🪐 ExoVision")
 _current = st.session_state.get("page", ROUTES["home"])
 idx = PAGES.index(_current) if _current in PAGES else 0
 _selected = st.sidebar.radio("Secciones", PAGES, index=idx, label_visibility="visible")
@@ -187,7 +187,7 @@ def render_home():
 
     with col1:
         st.markdown('<div class="eyebrow">Space Apps 2025</div>', unsafe_allow_html=True)
-        st.markdown('<h1 class="hero-title">Exo Cimarron<br/>hunting exoplanets with AI</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="hero-title">ExoVision<br/>hunting exoplanets with AI</h1>', unsafe_allow_html=True)
         st.markdown(
             '<p class="tagline">Aprende en minutos sobre Exoplanetas, diviertete jugando y predice si una señal es <b>PLANETA</b> o <b>NO PLANETA</b>. '
             'Herramienta util para astronomos, investigadores e incluso principiantes queriendo aprender mas sobre el tema.</p>',
@@ -844,10 +844,10 @@ def render_predictor():
 # ABOUT
 # =========================
 def render_about():
-    st.title("Acerca del MVP")
+    st.title("Acerca de la solucion")
     st.markdown(f"""
     <div class="block">
-      <p><b>{BRAND}</b> combina ciencia, juego e IA para explicar el método de tránsito de forma accesible.</p>
+      <p><b>ExoVision</b> combina ciencia, juego e IA para explicar el método de tránsito de forma accesible.</p>
       <p>Funcionalidades principales:</p>
       <ul>
         <li>Chat didáctico con modelo local</li>
