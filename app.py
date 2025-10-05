@@ -328,7 +328,7 @@ Si una petición es ambigua, asume la interpretación más útil y explícitala 
     if len(st.session_state.chat_msgs) == 1:
         st.markdown("""
         <div class="block">
-          <h4 style="margin:0 0 6px 0;">Empieza la conversación</h4>
+          <h4 style="margin:0 0 6px 0;">Empieza la conversación - *el chatbot no va a funcionar si no instalas el paquete - (Ver Readme)*</h4>
           <p style="margin:0 0 8px 0; color:#a6c3db">Toca una sugerencia:</p>
         </div>
         """, unsafe_allow_html=True)
