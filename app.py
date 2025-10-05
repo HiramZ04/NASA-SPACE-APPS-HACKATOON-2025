@@ -233,8 +233,10 @@ def render_home():
     with f3:
         st.info("**Tip:** un tránsito baja el brillo solo **unas ppm** (poquísimo).", icon="📉")
 
+
+
 # =========================
-# CHAT (sin duplicados y sin delay)
+# CHAT (fluido, sin rerun, sin "Limpiar chat" ni tip)
 # =========================
 def render_chat():
     st.title(f"💬 Chat — {BRAND}")
@@ -245,42 +247,50 @@ def render_chat():
         "Empieza siempre con 'ExoCimarron:' y sé amable. "
         "Para preguntas básicas, evita tecnicismos."
     )
-    if st.session_state.chat_msgs is None:
+
+    # Estado inicial
+    if "chat_msgs" not in st.session_state or st.session_state.chat_msgs is None:
         st.session_state.chat_msgs = [{"role": "system", "content": SYSTEM_MSG}]
 
-    HOST = os.environ.get("EXOCIM_OLLAMA_HOST", "http://localhost:11434")
-    MODEL = os.environ.get("EXOCIM_MODEL", "gemma3:latest")
-    TEMP = float(os.environ.get("EXOCIM_TEMP", "0.3"))
+    # Config Ollama
+    HOST   = os.environ.get("EXOCIM_OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+    MODEL  = os.environ.get("EXOCIM_MODEL", "gemma3:latest")
+    TEMP   = float(os.environ.get("EXOCIM_TEMP", "0.3"))
     MAXTOK = int(float(os.environ.get("EXOCIM_MAXTOK", "512")))
 
-    def render_assistant(md_text: str):
+    # Reusar conexión HTTP
+    if "http" not in st.session_state:
+        st.session_state.http = requests.Session()
+
+    def _format_asst(md_text: str) -> str:
         msg = md_text.strip()
         if msg.lower().startswith("exocimarron:"):
             body = msg.split(":", 1)[1].strip()
-            msg = f"**ExoCimarron:** {body}"
-        else:
-            msg = f"**ExoCimarron:** {msg}"
-        st.markdown(msg)
+            return f"**ExoCimarron:** {body}"
+        return f"**ExoCimarron:** {msg}"
 
-    def send_prompt(prompt: str):
-        st.session_state.chat_msgs.append({"role": "user", "content": prompt})
-        try:
-            payload = {
-                "model": MODEL, "stream": False,
-                "messages": st.session_state.chat_msgs,
-                "options": {"temperature": float(TEMP), "num_predict": int(MAXTOK)}
-            }
-            with st.spinner("ExoCimarron está pensando…"):
-                r = requests.post(f"{HOST}/api/chat", json=payload, timeout=120)
-                r.raise_for_status()
-                answer = r.json().get("message", {}).get("content", "(sin respuesta)")
-        except Exception:
-            answer = ("ExoCimarron: ⚠️ No pude conectar con el motor local. "
-                      "Asegúrate de que Ollama esté corriendo.")
-        st.session_state.chat_msgs.append({"role": "assistant", "content": answer})
-        st.rerun()
+    def stream_ollama(messages):
+        payload = {
+            "model": MODEL,
+            "messages": messages,
+            "stream": True,
+            "options": {"temperature": TEMP, "num_predict": MAXTOK},
+        }
+        with st.session_state.http.post(f"{HOST}/api/chat", json=payload, stream=True, timeout=600) as r:
+            r.raise_for_status()
+            for line in r.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
+                try:
+                    data = json.loads(line)
+                except Exception:
+                    continue
+                if "message" in data and "content" in data["message"]:
+                    yield data["message"]["content"]
+                if data.get("done"):
+                    break
 
-    # Chips solo si no hay historial
+    # Sugerencias (chips) sólo si no hay historial de usuario
     if len(st.session_state.chat_msgs) == 1:
         st.markdown("""
         <div class="block">
@@ -290,35 +300,62 @@ def render_chat():
         """, unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
-            if st.button("¿Qué es un exoplaneta?"): send_prompt("¿Qué es un exoplaneta? Explícamelo simple.")
-            if st.button("¿Puede haber vida allá afuera?"): send_prompt("¿Crees que puede haber vida en exoplanetas? Explícamelo sencillo.")
+            if st.button("¿Qué es un exoplaneta?"):
+                st.session_state._chip_prompt = "¿Qué es un exoplaneta? Explícamelo simple."
+            if st.button("¿Puede haber vida allá afuera?"):
+                st.session_state._chip_prompt = "¿Crees que puede haber vida en exoplanetas? Explícamelo sencillo."
         with c2:
-            if st.button("¿Para qué sirve buscarlos?"): send_prompt("¿Para qué sirve buscar exoplanetas? Dame 3 razones.")
-            if st.button("Dato curioso"): send_prompt("Dame un dato curioso sobre exoplanetas.")
+            if st.button("¿Para qué sirve buscarlos?"):
+                st.session_state._chip_prompt = "¿Para qué sirve buscar exoplanetas? Dame 3 razones."
+            if st.button("Dato curioso"):
+                st.session_state._chip_prompt = "Dame un dato curioso sobre exoplanetas."
         with c3:
-            if st.button("¿Qué fue la misión Kepler?"): send_prompt("¿Qué fue la misión Kepler y por qué fue importante?")
-            if st.button("¿Cómo los encontramos?"): send_prompt("¿Cómo encontramos exoplanetas? Dame una explicación fácil.")
+            if st.button("¿Qué fue la misión Kepler?"):
+                st.session_state._chip_prompt = "¿Qué fue la misión Kepler y por qué fue importante?"
+            if st.button("¿Cómo los encontramos?"):
+                st.session_state._chip_prompt = "¿Cómo encontramos exoplanetas? Dame una explicación fácil."
 
-    # Input primero -> rerun -> luego render del historial
-    user_text = st.chat_input("Escríbele a ExoCimarron…")
-    if user_text:
-        send_prompt(user_text)
-
+    # Render del historial (antes del input)
     for m in st.session_state.chat_msgs[1:]:
         if m["role"] == "user":
             with st.chat_message("user", avatar="🧑‍🚀"):
                 st.markdown(m["content"])
-        else:
+        elif m["role"] == "assistant":
             with st.chat_message("assistant", avatar="🐏"):
-                render_assistant(m["content"])
+                st.markdown(_format_asst(m["content"]))
 
-    cA, cB = st.columns(2)
-    with cA:
-        if st.button("🧹 Limpiar chat"):
-            st.session_state.chat_msgs = [{"role": "system", "content": SYSTEM_MSG}]
-            st.rerun()
-    with cB:
-        st.caption("Tip: preguntas cortas funcionan mejor. Ej.: “¿Cómo funciona el tránsito?”")
+    # Barra de entrada SIEMPRE visible
+    chip_prompt = st.session_state.pop("_chip_prompt", None)
+    typed_text  = st.chat_input("Escríbele a ExoCimarron…", key="chatbox")
+    user_text   = chip_prompt or typed_text
+
+    if user_text:
+        # turno del usuario
+        st.session_state.chat_msgs.append({"role": "user", "content": user_text})
+        with st.chat_message("user", avatar="🧑‍🚀"):
+            st.markdown(user_text)
+
+        # turno del asistente (stream)
+        with st.chat_message("assistant", avatar="🐏"):
+            placeholder = st.empty()
+            full = ""
+            try:
+                for token in stream_ollama(st.session_state.chat_msgs):
+                    full += token
+                    placeholder.markdown(_format_asst(full) + "▌")
+            except Exception:
+                full = ("ExoCimarron: ⚠️ No pude conectar con el motor local. "
+                        "Verifica que Ollama esté corriendo en 11434 y que el modelo esté cargado.")
+                placeholder.markdown(_format_asst(full))
+            else:
+                placeholder.markdown(_format_asst(full))
+
+        st.session_state.chat_msgs.append({"role": "assistant", "content": full})
+        st.stop()   # evita rerender completo
+
+
+
+
 
 # =========================
 # INFO — Método de tránsito (didáctico)
