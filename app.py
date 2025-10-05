@@ -588,22 +588,25 @@ def render_game():
             new_round()
 
 
+
 # =========================
-# PREDICTOR — Leaderboard + selector + multi-predicción
+# PREDICTOR — Leaderboard + selector + PREDECIR CON IA (arriba, con GIF)
 # =========================
 def render_predictor():
-    st.title(f"🔮 {BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
-
     import os, json, joblib
     import pandas as pd
     import plotly.graph_objects as go
+    import streamlit as st
 
-    MODELS_DIR = "models"
-    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # precomputado fuera del app
+    st.title(f"🔮 {BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
+
+    MODELS_DIR   = "models"
+    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # métricas precomputadas
 
     # -------- Helpers
     def list_models():
-        if not os.path.isdir(MODELS_DIR): return []
+        if not os.path.isdir(MODELS_DIR):
+            return []
         return sorted([os.path.splitext(fn)[0] for fn in os.listdir(MODELS_DIR) if fn.lower().endswith(".pkl")])
 
     @st.cache_resource(show_spinner=False)
@@ -633,81 +636,93 @@ def render_predictor():
         st.stop()
 
     metrics = load_metrics()
-    feats = load_features()
+    feats   = load_features()
 
-    # -------- Leaderboard (tabla + barra de accuracy)
+    # -------- Leaderboard (tabla + barras)
     st.subheader("🏆 Leaderboard de modelos")
     rows = []
     for m in available:
         acc = metrics.get(m, {}).get("accuracy", None)
         rows.append({"Modelo": m, "Accuracy": acc})
     leaderboard = pd.DataFrame(rows).sort_values(by="Accuracy", ascending=False, na_position="last")
+
     c1, c2 = st.columns([1.2, 1])
     with c1:
         st.dataframe(leaderboard, use_container_width=True)
     with c2:
-    # --- BARRAS legibles con márgenes seguros ---
         acc_pct = (leaderboard["Accuracy"].fillna(0) * 100).round(1)
-
-    fig = go.Figure(go.Bar(
-        x=leaderboard["Modelo"],
-        y=acc_pct,
-        text=[f"{v:.1f}%" for v in acc_pct],
-        textposition="outside",               # etiquetas fuera
-        marker=dict(
-            color=["#60A5FA", "#34D399", "#A78BFA", "#F59E0B", "#F472B6", "#7DD3FC"][:len(acc_pct)],
-            line=dict(color="rgba(255,255,255,0.35)", width=1.2)
+        fig = go.Figure(go.Bar(
+            x=leaderboard["Modelo"],
+            y=acc_pct,
+            text=[f"{v:.1f}%" for v in acc_pct],
+            textposition="outside",
+            marker=dict(
+                color=["#60A5FA", "#34D399", "#A78BFA", "#F59E0B", "#F472B6", "#7DD3FC"][:len(acc_pct)],
+                line=dict(color="rgba(255,255,255,0.35)", width=1.2)
+            )
+        ))
+        ymax = float(acc_pct.max() if len(acc_pct) else 100)
+        fig.update_layout(
+            template="plotly_dark",
+            height=340,
+            margin=dict(l=30, r=50, t=30, b=100),
+            yaxis_title="Accuracy (%)",
+            xaxis_title=""
         )
-    ))
+        fig.update_xaxes(tickangle=-25, automargin=True)
+        fig.update_yaxes(range=[0, ymax * 1.15], automargin=True)
+        fig.update_traces(cliponaxis=False)
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Headroom arriba para que no corte el texto outside
-    ymax = float(acc_pct.max() if len(acc_pct) else 100)
-
-    # Márgenes más amplios (especialmente abajo) + automargin en ejes
-    fig.update_layout(
-        template="plotly_dark",
-        height=340,
-        margin=dict(l=30, r=50, t=30, b=100),  # <- sube b si aún corta (p.ej. 120)
-        yaxis_title="Accuracy (%)",
-        xaxis_title=""
-    )
-    fig.update_xaxes(
-        tickangle=-25,
-        automargin=True,
-        tickfont=dict(size=16, family="Inter, sans-serif")
-    )
-    fig.update_yaxes(
-        range=[0, ymax * 1.15],   # espacio extra arriba para las etiquetas
-        tickfont=dict(size=14),
-        automargin=True
-    )
-
-    # Permite que el texto/barra se renderice fuera del eje sin recortarse
-    fig.update_traces(cliponaxis=False)
-
-    st.plotly_chart(fig, use_container_width=True)
-
-
-
-    # Top recomendado
-    recommended = leaderboard.iloc[0]["Modelo"] if len(leaderboard) else available[0]
-    use_rec = st.toggle("Usar recomendado automáticamente", value=True, help="Selecciona el mejor por Accuracy")
+    # -------- Selector + Accuracy + CTA PREDECIR (arriba)
+    recommended   = leaderboard.iloc[0]["Modelo"] if len(leaderboard) else available[0]
+    use_rec       = st.toggle("Usar recomendado automáticamente", value=True, help="Selecciona el mejor por Accuracy")
     default_index = available.index(recommended) if (use_rec and recommended in available) else 0
 
-    # -------- Selector de modelo (sigue existiendo, pero puede autoseleccionar el mejor)
-    sel_col, acc_col = st.columns([1, 1])
-    with sel_col:
-        model_name = st.selectbox("Modelo activo", available, index=default_index, help="Modelo que usará el gauge y el mensaje")
-    with acc_col:
-        acc = metrics.get(model_name, {}).get("accuracy", None)
-        if acc is not None:
-                st.metric("Accuracy (val/test)", f"{acc*100:.2f}%")
+    top_l, top_m, top_r = st.columns([1.2, 0.8, 1.4])
+    with top_l:
+        model_name = st.selectbox("Modelo activo", available, index=default_index, help="Modelo para el banner y el gauge")
+    with top_m:
+        acc_show = metrics.get(model_name, {}).get("accuracy", None)
+        if acc_show is not None:
+            st.metric("Accuracy (val/test)", f"{acc_show*100:.2f}%")
         else:
-                st.info("Accuracy: N/A (agrega `models/metrics.json`)")
+            st.info("Accuracy: N/A")
+
+    # --- CTA con GIF espacial (bonito y grande)
+    CTA_GIF = "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMzd3c201aDZ6djdoa2FoZWZ2Y2t3ZnJueWR5c2duMXNmeGVpNDdhMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Wkcw6SzOtaSxG/giphy.gif"
+    with top_r:
+        st.markdown(
+            f"""
+            <style>
+            .primary-cta .stButton > button {{
+                background: linear-gradient(135deg,#ff6a3d 0%, #ff2a74 45%, #7136ff 100%);
+                color:#fff; font-weight:900; font-size:18px; letter-spacing:.6px;
+                border:0; border-radius:14px; width:100%;
+                padding:22px 24px 22px 86px;
+                box-shadow:0 16px 40px rgba(255,64,125,.35);
+                transition:transform .05s ease-in, box-shadow .2s ease;
+                background-image:url('{CTA_GIF}');
+                background-size:46px 46px; background-repeat:no-repeat; background-position:22px center;
+            }}
+            .primary-cta .stButton > button:hover {{
+                transform: translateY(-1px);
+                box-shadow:0 22px 60px rgba(255,64,125,.45);
+            }}
+            .primary-cta .stButton > button:active {{
+                transform: translateY(0px) scale(.995);
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown('<div class="primary-cta">', unsafe_allow_html=True)
+        do_predict = st.button("PREDECIR CON IA", use_container_width=True, key="cta_predict")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.caption("Ajusta valores o usa un preset. Rangos típicos de Kepler.")
 
-    # -------- Presets
+    # -------- Presets (sin Júpiter caliente)
     presets = {
         "🌍 Tierra-like": {
             "koi_period": 365.0, "koi_duration": 10.0, "koi_depth": 84.0, "koi_model_snr": 12.0,
@@ -718,20 +733,15 @@ def render_predictor():
             "koi_period": 30.0, "koi_duration": 6.0, "koi_depth": 2000.0, "koi_model_snr": 25.0,
             "koi_impact": 0.3, "koi_time0bk": 700.0, "koi_steff": 5400.0, "koi_slogg": 4.4,
             "koi_srad": 1.0, "koi_smet": -0.1, "koi_kepmag": 13.5, "duty_cycle": 6.0/(30*24), "rp_rs": 0.035
-        },
-        "🔥 Júpiter caliente": {
-            "koi_period": 3.0, "koi_duration": 3.0, "koi_depth": 12000.0, "koi_model_snr": 60.0,
-            "koi_impact": 0.1, "koi_time0bk": 500.0, "koi_steff": 6000.0, "koi_slogg": 4.3,
-            "koi_srad": 1.2, "koi_smet": 0.2, "koi_kepmag": 12.5, "duty_cycle": 3.0/(3*24), "rp_rs": 0.1
         }
     }
     pc = st.columns(len(presets))
     for (i, (label, values)) in enumerate(presets.items()):
-        if pc[i].button(label, use_container_width=True):
+        if pc[i].button(label, use_container_width=True, key=f"preset_{i}"):
             st.session_state.predictor_values.update(values)
             st.toast(f"Preset aplicado: {label}")
 
-    # -------- Sliders (como los tienes)
+    # -------- Sliders
     slider_spec = [
         ("Periodo orbital (días)",            "koi_period",     0.5,   500.0,  20.0,   0.1,  "Periodo entre tránsitos."),
         ("Duración del tránsito (horas)",     "koi_duration",   0.2,    30.0,   5.0,   0.1,  "Tiempo que dura el tránsito."),
@@ -747,83 +757,81 @@ def render_predictor():
         ("Duty cycle (duración/periodo)",     "duty_cycle",     0.0,     0.2,   0.01,  0.001,"Fracción del tiempo en tránsito."),
         ("Razón de radios rp/rs",             "rp_rs",          0.005,   0.20,  0.05,  0.001,"~√(depth)."),
     ]
-    desired_order = (feats if feats else [s[1] for s in slider_spec])
-    spec_by_name = {s[1]: s for s in slider_spec}
-    slider_names_ordered = [c for c in desired_order if c in spec_by_name]
+    desired_order       = (feats if feats else [s[1] for s in slider_spec])
+    spec_by_name        = {s[1]: s for s in slider_spec}
+    slider_names_ordered= [c for c in desired_order if c in spec_by_name]
 
     values = {}
     for i in range(0, len(slider_names_ordered), 2):
-        c1, c2 = st.columns(2)
-        for col, name in zip((c1, c2), slider_names_ordered[i:i+2]):
+        cA, cB = st.columns(2)
+        for col, name in zip((cA, cB), slider_names_ordered[i:i+2]):
             label, key, vmin, vmax, vdef, step, help_ = spec_by_name[name]
             default = st.session_state.predictor_values.get(key, vdef)
             with col:
                 v = st.slider(label, float(vmin), float(vmax), float(default), float(step), help=help_, key=f"sl_{key}")
                 values[key] = v
 
-    sync_depth = st.checkbox("Sincronizar profundidad con rp/rs (depth ≈ (rp/rs)^2)", value=False)
-    if sync_depth:
-        values["koi_depth"] = float(values.get("rp_rs", 0.0)**2 * 1e6)
-        st.session_state["sl_koi_depth"] = values["koi_depth"]
-
     # -------- Construir X con orden correcto
     X = pd.DataFrame([[values.get(c, 0.0) for c in slider_names_ordered]], columns=slider_names_ordered)
-    # Si el modelo guardó feature_names_in_, reordenaremos al vuelo cuando hagamos cada predicción
-    # Si no, usamos features.json como orden base
+
     def align_X_for(model):
         if hasattr(model, "feature_names_in_"):
             Z = X.copy()
             for miss in model.feature_names_in_:
-                if miss not in Z.columns: Z[miss] = 0.0
+                if miss not in Z.columns:
+                    Z[miss] = 0.0
             return Z[model.feature_names_in_]
         elif feats:
             Z = X.copy()
             for miss in feats:
-                if miss not in Z.columns: Z[miss] = 0.0
+                if miss not in Z.columns:
+                    Z[miss] = 0.0
             return Z[feats]
         return X
 
     st.markdown("---")
 
-    # -------- Botón: predecir con TODOS y mostrar tabla
-    if st.button("🚀 Predecir con todos los modelos", use_container_width=True):
+    # ====== ACCIÓN: PREDECIR CON IA ======
+    if do_predict:
         rows_pred = []
         for m in available:
             mdl = load_model(m)
-            Xi = align_X_for(mdl)
+            Xi  = align_X_for(mdl)
             yhat = int(mdl.predict(Xi)[0])
-            prob = None
-            if hasattr(mdl, "predict_proba"):
-                p = mdl.predict_proba(Xi)[0]
-                prob = float(p[1]) if yhat==1 else float(p[0])
             rows_pred.append({
                 "Modelo": m,
                 "Predicción": "CONFIRMED" if yhat==1 else "FALSE POSITIVE",
-                "Confianza": (None if prob is None else f"{prob*100:.1f}%"),
                 "Accuracy(ref)": (None if metrics.get(m, {}).get("accuracy") is None else f"{metrics[m]['accuracy']*100:.2f}%")
             })
 
-        # Ordenar: primero los que predicen CONFIRMED con mayor confianza, luego el resto
+        # Tabla de resultados
         dfp = pd.DataFrame(rows_pred)
-        st.subheader("Resultados para este input")
+        st.subheader("Resultados IA para este input")
         st.dataframe(dfp, use_container_width=True)
 
-        # Gauge SOLO del modelo seleccionado (para mantener tu UI original)
-        mdl_sel = load_model(model_name)
-        Xi_sel = align_X_for(mdl_sel)
+        # Mensaje + gauge usando SOLO Accuracy (ref)
+        mdl_sel  = load_model(model_name)
+        Xi_sel   = align_X_for(mdl_sel)
         yhat_sel = int(mdl_sel.predict(Xi_sel)[0])
-        label_sel = "CONFIRMED" if yhat_sel==1 else "FALSE POSITIVE"
-        conf_val = None
-        if hasattr(mdl_sel, "predict_proba"):
-            psel = mdl_sel.predict_proba(Xi_sel)[0]
-            conf_val = float(psel[1]) if yhat_sel==1 else float(psel[0])
-        (st.success if yhat_sel==1 else st.error)(f"{BRAND} ({model_name}) dice: **{label_sel}** · " + (f"Confianza ≈ {conf_val*100:.1f}%" if conf_val is not None else ""))
-        if conf_val is not None:
+        label_sel= "CONFIRMED" if yhat_sel == 1 else "FALSE POSITIVE"
+        acc_show = metrics.get(model_name, {}).get("accuracy", None)
+
+        msg = f"ExoCimarron ({model_name}) dice: **{label_sel}** · " + \
+              (f"Accuracy(ref) ≈ {acc_show*100:.2f}%" if acc_show is not None else "Accuracy(ref): N/A")
+
+        if yhat_sel == 1:
+            st.success(msg, icon="✅")
+            bar_color = "#22c55e"  # verde
+        else:
+            st.error(msg, icon="❌")
+            bar_color = "#ef4444"  # rojo
+
+        if acc_show is not None:
             gfig = go.Figure(go.Indicator(
                 mode="gauge+number",
-                value=conf_val*100,
+                value=acc_show*100,
                 number={"suffix":"%"},
-                gauge={"axis":{"range":[0,100]}, "bar":{"thickness":0.35}},
+                gauge={"axis":{"range":[0,100]}, "bar":{"thickness":0.35, "color": bar_color}},
                 domain={"x":[0,1],"y":[0,1]}
             ))
             gfig.update_layout(template="plotly_dark", height=280, margin=dict(l=10,r=10,t=20,b=10))
@@ -833,9 +841,11 @@ def render_predictor():
     with st.expander("Consejos rápidos"):
         st.write("""
         - Usa el leaderboard para comparar modelos sin cambiar de vista.
-        - El botón **Predecir con todos** te da, para este input, la salida de todos los modelos a la vez.
-        - Activa **Usar recomendado** para que el select te elija el mejor automáticamente (por Accuracy).
+        - La tabla muestra la predicción de **todos** los modelos y su **Accuracy(ref)** (valid/test).
+        - El banner y el gauge usan el **modelo activo** del selector superior.
         """)
+
+
 
 
 
