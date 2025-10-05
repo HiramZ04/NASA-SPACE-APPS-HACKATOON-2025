@@ -98,10 +98,10 @@ with tab2:
 
     
     with col2:
-        st.info("**Estadísticas**")
-        st.metric("Exoplanetas Confirmados", "6,000+", "+200 (último año) (NASA, 2024)")
-        st.metric("Sistemas Planetarios Descubiertos", "4,600+", "+180 (último año) (NASA Exoplanet Archive, 2024)")
-        st.metric("Misiones Activas de Búsqueda", "3 (Kepler, TESS, JWST)", "+1 (nueva misión observacional) (NASA Eyes on Exoplanets, 2024)")
+        st.info("**Statistics**")
+        st.metric("Confirmed Exoplanets", "6,000+", "+200 (last year) (NASA, 2024)")
+        st.metric("Discovered Planetary Systems", "4,600+", "+180 (last year) (NASA Exoplanet Archive, 2024)")
+        st.metric("Active Search Missions", "3 (Kepler, TESS, JWST)", "+1 (new observational mission) (NASA Eyes on Exoplanets, 2024)")
 
 with tab3:
     st.header("About Us")
