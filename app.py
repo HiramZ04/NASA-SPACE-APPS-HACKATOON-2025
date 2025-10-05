@@ -63,7 +63,7 @@ html_embed(GLOBAL_STYLE, height=0)
 # =========================
 ROUTES = {
     "home":    "Inicio",
-    "learn":   "Aprende Mas",
+    "learn":   "Aprende Más",
     "predict": "Predice IA",
     "game":    "Juega ",
     "chat":    "Chatea con ExoCimarron",
@@ -401,10 +401,11 @@ Si una petición es ambigua, asume la interpretación más útil y explícitala 
 # INFO — Método de tránsito (didáctico)
 # =========================
 def render_info():
-    st.title("📚 Aprende — Método de tránsito")
-    tab1, tab2, tab3 = st.tabs(["Concepto", "Anatomía del tránsito", "🧪 Simulador"])
+    st.title("Aprende — Más")
+    tab1, tab2 = st.tabs(["Concepto", "Simulador"])
 
     with tab1:
+        # Sección 1: Concepto básico
         c1, c2 = st.columns([1.2, 1])
         with c1:
             st.markdown("""
@@ -417,33 +418,32 @@ def render_info():
             """)
             st.latex(r"\text{depth} \approx \left(\frac{R_p}{R_\star}\right)^2")
             st.markdown("""
-            - **Duración**: cuántas horas dura el “eclipse”.
-            - **Periodo**: cada cuántos días se repite.
+            * **Duración:** Se asocia con el **ancho del valle** en la curva de luz. Depende de la velocidad orbital del planeta y del tamaño de la estrella.
+            * **Periodo:** La **repetición periódica** del mismo patrón indica el **tiempo que tarda el planeta en dar una vuelta completa** alrededor de su estrella.
             """)
         with c2:
             show_img(IMAGES["kepler"], "Misión Kepler (NASA)")
 
-    with tab2:
-        st.subheader("Anatomía del tránsito")
+        st.markdown("---")
+
+        # Sección 2: Método del tránsito (ahora en Concepto)
+        st.subheader("Método del tránsito")
         c1, c2 = st.columns(2)
         with c1:
-            show_img(IMAGES["transit"], "Diagrama (ESA)")
+            show_img("https://i.giphy.com/coBd3RjR8tGGh6UOOm.webp", "Animación del tránsito")
         with c2:
-            st.markdown(r"""
-            - (A) Fuera de tránsito: flujo ~ **1.0** (normalizado).  
-            - (B) **Ingreso**: empieza a bajar la luz.  
-            - (C) **Mínimo**: mitad del tránsito.  
-            - (D) **Egreso**: vuelve a 1.0.
-
-            **Pistas clave**  
-            - **Depth (ppm)** ~ \( (R_p/R_\star)^2 \).  
-            - **Duración** ↔ ancho del valle.  
-            - **Periodo** ↔ repetición.  
-            - **Impacto (b)**: 0 centrado (forma **U**), cercano a 1 “rozando” (más **V**).
+            st.markdown("""
+            Cuando un exoplaneta pasa frente a su estrella (desde nuestro punto de vista), bloquea una pequeña fracción de su luz. Esto se observa como una disminución periódica en el flujo luminoso registrado en la curva de luz.
+            * **(A) Fuera de tránsito:** El planeta no está frente a la estrella. El flujo de luz observado es **constante y normalizado a ~1.0**
+            * **(B) Ingreso (ingress):** El planeta comienza a pasar por delante del disco estelar. Se observa una **caída gradual** en el flujo de luz, ya que el planeta empieza a bloquear parte de la superficie estelar.
+            * **(C) Mínimo (mid-transit):** El planeta está **alineado con el centro del disco estelar** (si la trayectoria es central). Este punto indica la parte más profunda del "valle" en la curva de luz.
+            * **(D) Egreso (egress):** El planeta comienza a salir del disco estelar. La cantidad de luz bloqueada **disminuye gradualmente**, y el flujo **vuelve a su nivel normal (~1.0)** cuando el tránsito termina.
+        
             """)
+    
 
-    with tab3:
-        st.subheader("🧪 Juega con un tránsito sintético")
+    with tab2:
+        st.subheader("Juega con un tránsito sintético")
         c = st.columns(6)
         P_days       = c[0].slider("Periodo (días)",            0.5, 500.0, 20.0, 0.5)
         duration_h   = c[1].slider("Duración (horas)",          0.2,  30.0,  5.0, 0.1)
@@ -452,10 +452,9 @@ def render_info():
         noise_sigma  = c[4].slider("Ruido σ (rel.)",            0.0,   0.01, 0.002, 0.0005)
         vshape       = c[5].slider("Forma U ↔ V",               0.0,   0.60, 0.20, 0.05, help="0 = U suave, 0.6 = V pronunciada")
 
-        star_cols = st.columns(3)
-        Rstar_Rsun  = star_cols[0].slider("Radio estelar R★ (R☉)", 0.1, 5.0, 1.0, 0.01)
-        center_phase= star_cols[1].slider("Centro de tránsito (fase)", 0.1, 0.9, 0.5, 0.01)
-        show_marks  = star_cols[2].checkbox("Marcar ingreso/egreso", True)
+        star_cols = st.columns(2)
+        center_phase= star_cols[0].slider("Centro de tránsito (fase)", 0.1, 0.9, 0.5, 0.01)
+        show_marks  = star_cols[1].checkbox("Marcar ingreso/egreso", True)
 
         def transit_curve(n=900, depth=0.01, width=0.08, center=0.5, vshape=0.2, noise=0.0):
             x = np.linspace(0, 1, n)
@@ -485,16 +484,14 @@ def render_info():
         st.plotly_chart(fig, use_container_width=True)
 
         depth_ppm = depth * 1e6
-        Rp_Rearth = k_rprs * Rstar_Rsun * 109.1
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Profundidad", f"{depth_ppm:,.0f} ppm")
         m2.metric("rp/rs", f"{k_rprs:.3f}")
         m3.metric("Duración", f"{duration_h:.2f} h")
         m4.metric("Duty cycle", f"{duty:.3f}")
         m5, m6 = st.columns(2)
-        m5.metric("Radio planeta", f"{Rp_Rearth:.1f} R⊕")
+        m5.metric("Radio planeta", f"{k_rprs:.1f} R⊕")
         m6.metric("Impacto (b)", f"{b_impact:.2f}")
-        st.caption("Modelo didáctico (sin oscurecimiento de limbo).")
 
 # =========================
 # GAME — Caza exoplanetas
