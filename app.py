@@ -63,10 +63,10 @@ html_embed(GLOBAL_STYLE, height=0)
 # =========================
 ROUTES = {
     "home":    "🏠 Inicio",
-    "learn":   "📚 Aprende (Método de tránsito)",
-    "predict": "🔮 Predice (CONF vs FP)",
-    "game":    "🎮 Juega (Curva de luz)",
-    "chat":    "💬 Chat — ExoCimarron",
+    "learn":   "📚 Aprende Mas",
+    "predict": "🔮 Predice IA",
+    "game":    "🎮 Juega ",
+    "chat":    "💬 Chatea con ExoCimarron",
     "about":   "🚀 Acerca del MVP",
 }
 PAGES = list(ROUTES.values())
@@ -184,8 +184,8 @@ def render_home():
         st.markdown('<div class="eyebrow">Space Apps 2025</div>', unsafe_allow_html=True)
         st.markdown('<h1 class="hero-title">Exo Cimarron<br/>hunting exoplanets with AI</h1>', unsafe_allow_html=True)
         st.markdown(
-            '<p class="tagline">Aprende en minutos, juega en segundos y predice si una señal es <b>PLANETA</b> o <b>NO PLANETA</b>. '
-            'Todo pensado para público no técnico.</p>',
+            '<p class="tagline">Aprende en minutos sobre Exoplanetas, diviertete jugando y predice si una señal es <b>PLANETA</b> o <b>NO PLANETA</b>. '
+            'Herramienta util para astronomos, investigadores e incluso principiantes queriendo aprender mas sobre el tema.</p>',
             unsafe_allow_html=True
         )
 
@@ -197,32 +197,27 @@ def render_home():
             st.button("📚 Aprende", use_container_width=True,
                       help="Método de tránsito explicado fácil",
                       on_click=goto_page, args=(ROUTES["learn"],))
-            st.markdown("<div class='cta-title'>Aprende</div>", unsafe_allow_html=True)
+            
 
         with c2:
             st.button("🔮 Predice", use_container_width=True,
                       help="Predice CONFIRMED vs FALSE POSITIVE",
                       on_click=goto_page, args=(ROUTES["predict"],))
-            st.markdown("<div class='cta-title'>Predice</div>", unsafe_allow_html=True)
+            
 
         with c3:
             st.button("🎮 Juega", use_container_width=True,
                       help="Mini-juego: ¿PLANETA o NO PLANETA?",
                       on_click=goto_page, args=(ROUTES["game"],))
-            st.markdown("<div class='cta-title'>Juega</div>", unsafe_allow_html=True)
+            
 
         with c4:
             st.button("💬 Chat", use_container_width=True,
                       help="Habla con ExoCimarron",
                       on_click=goto_page, args=(ROUTES["chat"],))
-            st.markdown("<div class='cta-title'>Chat</div>", unsafe_allow_html=True)
+            
 
-        # Chips visuales (no técnicas)
-        st.markdown(
-            '<span class="chip">Visual & animado</span>'
-            '<span class="chip">Para no técnicos</span>'
-            '<span class="chip">Open Science</span>', unsafe_allow_html=True
-        )
+       
 
     with col2:
         st.markdown('<div class="art-wrap"><div class="accent"></div></div>', unsafe_allow_html=True)
@@ -609,9 +604,10 @@ def render_predictor():
         with explain:
             st.write("""
             • **Profundidad** y **rp/rs** (tamaño relativo del planeta)  
-            • **Duración** y **duty cycle** (forma/ancho del tránsito)  
+            • **Dur ación** y **duty cycle** (forma/ancho del tránsito)  
             • **SNR** (qué tan clara es la señal)  
             • Propiedades **estelares** (temperatura, log g, radio, magnitud)  
+            • **Periodo orbital** cuanto tiempo tarda en volver a aparecer enfrente de la estrella
             """)
         if st.button("🚀 Predecir", use_container_width=True):
             try:
