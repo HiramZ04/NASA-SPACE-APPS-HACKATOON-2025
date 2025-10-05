@@ -1,0 +1,20 @@
+{
+  "LogisticRegression": {
+    "accuracy": 0.6522929500342232
+  },
+  "GradientBoosting": {
+    "accuracy": 0.919917864476386
+  },
+  "AdaBoost": {
+    "accuracy": 0.893908281998631
+  },
+  "RandomForest": {
+    "accuracy": 0.9164955509924709
+  },
+  "KNN": {
+    "accuracy": 0.7727583846680356
+  },
+  "NaiveBayes": {
+    "accuracy": 0.6509240246406571
+  }
+}

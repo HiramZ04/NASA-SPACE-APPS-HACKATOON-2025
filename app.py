@@ -510,28 +510,71 @@ def render_game():
         else:
             new_round()
 
+
+
 # =========================
-# PREDICTOR — Presets + explicación
+# PREDICTOR — Selector de modelo + presets + gauge
 # =========================
 def render_predictor():
     st.title(f"🔮 {BRAND}: Predicción — CONFIRMED vs FALSE POSITIVE")
 
+    import os, json, joblib
+    import pandas as pd
+
+    MODELS_DIR = "models"
+    METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # {"LogisticRegression": {"accuracy": 0.86}, ...}
+
+    # Detecta automáticamente los modelos disponibles en ./models/*.pkl
+    def list_models():
+        if not os.path.isdir(MODELS_DIR):
+            return []
+        names = []
+        for fn in os.listdir(MODELS_DIR):
+            if fn.lower().endswith(".pkl"):
+                names.append(os.path.splitext(fn)[0])
+        return sorted(names)
+
     @st.cache_resource(show_spinner=False)
-    def load_artifacts():
-        mdl = joblib.load("model.pkl")
+    def load_model_and_feats(model_name: str):
+        mdl = joblib.load(os.path.join(MODELS_DIR, f"{model_name}.pkl"))
         try:
-            with open("features.json","r") as f: cols = json.load(f)
-        except Exception: cols = None
+            with open(os.path.join(MODELS_DIR, "features.json"), "r") as f:
+                cols = json.load(f)
+        except Exception:
+            cols = None
         return mdl, cols
 
-    try:
-        model, feat_json = load_artifacts()
-    except Exception as e:
-        st.error(f"No pude cargar el modelo: {e}")
+    @st.cache_data(show_spinner=False)
+    def load_metrics():
+        try:
+            with open(METRICS_PATH, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    # ---- UI: selector de modelo + accuracy
+    available = list_models()
+    if not available:
+        st.error("No encontré modelos en `./models`. Asegúrate de guardar `*.pkl` en esa carpeta.")
         st.stop()
+
+    csel = st.columns(2)
+    with csel[0]:
+        model_name = st.selectbox("Modelo de clasificación", available, index=0,
+                                  help="Elige el clasificador que deseas usar")
+    model, feat_json = load_model_and_feats(model_name)
+
+    metrics = load_metrics()
+    acc = metrics.get(model_name, {}).get("accuracy", None)
+    with csel[1]:
+        if acc is not None:
+            st.metric("Accuracy (val/test)", f"{acc*100:.2f}%")
+        else:
+            st.info("Accuracy: N/A (agrega `models/metrics.json`)")
 
     st.caption("Ajusta valores o usa un preset. Rangos típicos de Kepler.")
 
+    # ---- Presets
     presets = {
         "🌍 Tierra-like": {
             "koi_period": 365.0, "koi_duration": 10.0, "koi_depth": 84.0, "koi_model_snr": 12.0,
@@ -555,6 +598,7 @@ def render_predictor():
             st.session_state.predictor_values.update(values)
             st.toast(f"Preset aplicado: {label}")
 
+    # ---- Sliders (idéntico a tu versión)
     slider_spec = [
         ("Periodo orbital (días)",            "koi_period",     0.5,   500.0,  20.0,   0.1,  "Periodo entre tránsitos."),
         ("Duración del tránsito (horas)",     "koi_duration",   0.2,    30.0,   5.0,   0.1,  "Tiempo que dura el tránsito."),
@@ -590,11 +634,16 @@ def render_predictor():
         values["koi_depth"] = float(values.get("rp_rs", 0.0)**2 * 1e6)
         st.session_state["sl_koi_depth"] = values["koi_depth"]
 
+    # ---- Arma X con el orden correcto de columnas
     X = pd.DataFrame([[values.get(c, 0.0) for c in slider_names_ordered]], columns=slider_names_ordered)
     if hasattr(model, "feature_names_in_"):
         for miss in model.feature_names_in_:
             if miss not in X.columns: X[miss] = 0.0
         X = X[model.feature_names_in_]
+    elif feat_json:
+        for miss in feat_json:
+            if miss not in X.columns: X[miss] = 0.0
+        X = X[feat_json]
 
     st.markdown("---")
     cL, cR = st.columns([1,1])
@@ -604,25 +653,21 @@ def render_predictor():
         with explain:
             st.write("""
             • **Profundidad** y **rp/rs** (tamaño relativo del planeta)  
-            • **Dur ación** y **duty cycle** (forma/ancho del tránsito)  
+            • **Duración** y **duty cycle** (forma/ancho del tránsito)  
             • **SNR** (qué tan clara es la señal)  
             • Propiedades **estelares** (temperatura, log g, radio, magnitud)  
-            • **Periodo orbital** cuanto tiempo tarda en volver a aparecer enfrente de la estrella
+            • **Periodo orbital** (repetición del tránsito)
             """)
         if st.button("🚀 Predecir", use_container_width=True):
             try:
                 yhat = int(model.predict(X)[0])
                 label = "CONFIRMED" if yhat==1 else "FALSE POSITIVE"
-                conf_txt = ""
-                conf_val = None
+                conf_txt, conf_val = "", None
                 if hasattr(model, "predict_proba"):
                     proba = model.predict_proba(X)[0]
                     conf_val = float(proba[1]) if yhat==1 else float(proba[0])
                     conf_txt = f"Confianza ≈ {conf_val*100:.1f}%"
-                if yhat==1:
-                    st.success(f"{BRAND} dice: **{label}** · {conf_txt}")
-                else:
-                    st.error(f"{BRAND} dice: **{label}** · {conf_txt}")
+                (st.success if yhat==1 else st.error)(f"{BRAND} dice: **{label}** · {conf_txt}")
 
                 if conf_val is not None:
                     gfig = go.Figure(go.Indicator(
@@ -635,20 +680,7 @@ def render_predictor():
                     gfig.update_layout(template="plotly_dark", height=280, margin=dict(l=10,r=10,t=20,b=10))
                     st.plotly_chart(gfig, use_container_width=True)
 
-                with st.expander("¿Por qué? Explicación en lenguaje sencillo"):
-                    depth_ppm = values.get("koi_depth", 0.0)
-                    rp_rs = values.get("rp_rs", 0.0)
-                    duty = values.get("duty_cycle", 0.0)
-                    snr = values.get("koi_model_snr", 0.0)
-                    hints = []
-                    if depth_ppm>15000 or rp_rs>0.09: hints.append("Dip profundo / planeta grande → más fácil confirmar.")
-                    if snr<10: hints.append("SNR bajo → la señal podría ser ruido.")
-                    if duty<0.005: hints.append("Duty muy pequeño → tránsito muy angosto, puede confundirse.")
-                    if values.get("koi_impact",0.5)>0.9: hints.append("Impacto alto (rozando) → forma V, más dudoso.")
-                    if not hints: hints.append("Señales y parámetros consistentes con un tránsito típico.")
-                    st.write("\n".join([f"• {h}" for h in hints]))
-
-                res = {"label": label, "confidence": (conf_val*100 if conf_val is not None else None)}
+                res = {"label": label, "confidence": (conf_val*100 if conf_val is not None else None), "model": model_name}
                 st.code(json.dumps({"input": values, "prediction": res}, indent=2), language="json")
 
             except Exception as e:
@@ -661,6 +693,9 @@ def render_predictor():
         - `SNR` alto ayuda a confirmar; `impacto b` cercano a 1 suele dar forma V.
         - Si quieres consistencia física: activa *Sincronizar profundidad con rp/rs*.
         """)
+
+
+
 
 # =========================
 # ABOUT
