@@ -916,19 +916,19 @@ def render_about():
     /* Main container for each timeline block */
     .timeline-row {
         display: flex;
-        align-items: center;   /* vertically centers image and text */
-        margin-bottom: 40px;   /* separation between rows */
+        align-items: center;
+        margin-bottom: 40px;
     }
     /* Image column */
     .img-container {
-        flex: 1;               /* relative width */
+        flex: 1;
         display: flex;
         justify-content: center;
         align-items: center;
     }
     /* Image */
     img.timeline {
-        width: 260px;          /* adjust size to taste */
+        width: 260px;
         height: auto;
         border-radius: 14px;
         object-fit: contain;
@@ -948,7 +948,6 @@ def render_about():
     </style>
     """, unsafe_allow_html=True)
 
-
     # Main timeline loop
     for item in timeline_data:
         st.markdown(f"""
@@ -967,11 +966,58 @@ def render_about():
         """, unsafe_allow_html=True)
         
     st.markdown("### Gallery")
-    g1,g2,g3 = st.columns(3)
-    with g1: show_img(IMAGES["nasa_logo"],   caption="NASA")
-    with g2: show_img(IMAGES["kepler"],      caption="Kepler")
-    with g3: show_img(IMAGES["transit"],     caption="Transit (ESA)")
-
+    g1, g2, g3 = st.columns(3)
+    with g1: show_img(IMAGES["nasa_logo"], caption="NASA")
+    with g2: show_img(IMAGES["kepler"], caption="Kepler")
+    with g3: show_img(IMAGES["transit"], caption="Transit (ESA)")
+    
+    st.markdown("---")
+    
+    st.markdown("### References")
+    
+    st.markdown("#### Scientific Literature")
+    st.markdown("""
+    - Alik, A., Moster, B. P., & Obermeier, C. (2022). Exoplanet detection using machine learning. *Monthly Notices of the Royal Astronomical Society*, 513(4), 5505–5516. https://doi.org/10.1093/mnras/stab3692
+    
+    - Luz, T. S. F., Braga, R. A. S., & Ribeiro, E. R. (2024). Assessment of ensemble-based machine learning algorithms for exoplanet identification. *Electronics*, 13(19), 3950. https://doi.org/10.3390/electronics13193950
+    """)
+    
+    st.markdown("#### Data Sources and Visual Resources")
+    
+    with st.expander("View complete reference list"):
+        st.markdown("""
+        **Images and Data:**
+        
+        - ESA. (2003). Planet transit [Illustration]. European Space Agency. https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2003/06/planet_transit/9798645-3-eng-GB/Planet_transit_pillars.jpg
+        
+        - HowStuffWorks. (n.d.). Exoplanets [Photography]. https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL2V4b3BsYW5ldHMtMS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH0sInRvRm9ybWF0IjoiYXZpZiJ9fQ==
+        
+        - NASA. (n.d.). NASA logo [Logo]. SeekLogo. https://images.seeklogo.com/logo-png/9/1/nasa-logo-png_seeklogo-97034.png
+        
+        - NASA. (n.d.). Webb telescope transit animation [GIF]. Giphy. https://giphy.com/gifs/nasa-webb-jwst-nasawebb-coBd3RjR8tGGh6UOOm
+        
+        - NASA Exoplanet Science Institute. (2024). NASA Exoplanet Archive: Kepler Objects of Interest [Dataset]. California Institute of Technology. https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=cumulative
+        
+        - NASA/Ames/JPL-Caltech. (2014). Kepler Mission [Photography]. NASA Image and Video Library. https://images-assets.nasa.gov/image/PIA18904/PIA18904~large.jpg
+        
+        **Animations:**
+        
+        - Giphy. (n.d.). AI and machine learning animation [GIF]. https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDJ5bDU3bmxqYThzOThwa2I3M21rY2lnZDhsNm42b3YxMGdsNzRwMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LR5ZBwZHv02lmpVoEU/giphy.gif
+        
+        - Giphy. (n.d.). Astronomy animation [GIF]. https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDBnNDF6Zmh3anF3bGRrMjRya2Q3M2hibXZjNGJ3NGtnZWh0YThmMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlO4V8iCRME3i0g/giphy.gif
+        
+        - Giphy. (n.d.). Chatbot animation [GIF]. https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWE1MzRyM2g3ZG50dnZodzYyNmhhZmt5ZGYwOHJvanlnZmw0dGhxbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/S60CrN9iMxFlyp7uM8/giphy.gif
+        
+        - Giphy. (n.d.). Presentation animation [GIF]. https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExam83bzgxZTd6aHpuYmQxczloeWdhaHoxbzczOWVyOWI2ZDR0MWEycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/U3dIoNBOyfTkA/giphy.gif
+        
+        - Giphy. (n.d.). Research animation [GIF]. https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2VyOTJsdGdibTJicGIwdm52YWV3dDJ5dndib20zN3Rxd2JpY2M2cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0GsNMsRwDKKMjiwIe5/giphy.gif
+        
+        - Giphy. (n.d.). Space simulation animation [GIF]. https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTZ1MWo4aTQwaDJkbXZnd2JnZjV2ZmtvaW83YmpmMzEyNzNncjJieiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hsubjoiDroLg4AYyUO/giphy.gif
+        
+        - Giphy. (n.d.). Teamwork animation [GIF]. https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExa24zZW53bGRsNjZobG9pdWlqbXcxbHdubHZqZTkyeWVxMHR5c3BoMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9yssegcqq1WDlPKdP4/giphy.gif
+        
+        - Giphy. (n.d.). Testing and validation animation [GIF]. https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjhremVrb3JybnA4eDU0em43eXd5cHc5bHV4OWRqdmFvdHprbXV2eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gw3IWyGkC0rsazTi/giphy.gif
+        """)
 # =========================
 # ROUTER
 # =========================
