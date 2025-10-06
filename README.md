@@ -1,7 +1,13 @@
 # NASA-SPACE-APPS-HACKATOON-2025
 Challenge: A World Away: Hunting for Exoplanets with AI
-EL chat bot no lo van a poder usar porque es un LLM LOCAL lo ocupan installar 
+
+Hosted on https://exovision.streamlit.app
+
+The chat bot is not usable since you need a Local LLM to run it. 
+
 !pip install ollama
 ollama pull gemma3:latest
 
-Pagina en proceso
+Project still in development
+
+Thanks for checking it out:)
