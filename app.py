@@ -206,7 +206,7 @@ def render_home():
 
         with c2:
             st.button("Predict", use_container_width=True,
-                      help="Predict CONFIRMED vs FALSE POSITIVE",
+                      help="Predict Exoplanet vs Not Exoplanet",
                       on_click=goto_page, args=(ROUTES["predict"],))
             
 
@@ -579,17 +579,15 @@ def render_game():
             new_round()
 
 
+# PREDICTOr
 
-# =========================
-# PREDICTOR — Leaderboard + selector + PREDECIR CON IA (arriba, con GIF)
-# =========================
 def render_predictor():
     import os, json, joblib
     import pandas as pd
     import plotly.graph_objects as go
     import streamlit as st
 
-    st.title(f"{BRAND}: Prediction — CONFIRMED vs FALSE POSITIVE")
+    st.title(f"{BRAND}: Prediction — Exoplanet vs Not Exoplanet")
 
     MODELS_DIR   = "models"
     METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")  # precomputed metrics
@@ -711,9 +709,9 @@ def render_predictor():
         do_predict = st.button("PREDICT WITH AI", use_container_width=True, key="cta_predict")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    st.caption("Adjust values or use a preset. Typical Kepler ranges.")
+    st.caption("Inputs without limits: you can type any real number.")
 
-    # -------- Presets (without Hot Jupiter)
+    # -------- Presets (unchanged)
     presets = {
         "🌍 Earth-like": {
             "koi_period": 365.0, "koi_duration": 10.0, "koi_depth": 84.0, "koi_model_snr": 12.0,
@@ -732,38 +730,41 @@ def render_predictor():
             st.session_state.predictor_values.update(values)
             st.toast(f"Preset applied: {label}")
 
-    # -------- Sliders
-    slider_spec = [
-        ("Orbital period (days)",            "koi_period",     0.5,   500.0,  20.0,   0.1,  "Period between transits."),
-        ("Transit duration (hours)",     "koi_duration",   0.2,    30.0,   5.0,   0.1,  "Time the transit lasts."),
-        ("Transit depth (ppm)",    "koi_depth",     20.0, 50000.0, 800.0,  10.0,  "Flux drop (ppm)."),
-        ("Transit model SNR",        "koi_model_snr",  1.0,   300.0,  20.0,   0.5,  "Signal-to-noise ratio."),
-        ("Impact parameter (b)",          "koi_impact",     0.0,     1.2,   0.3,   0.01, "0 centered, 1 grazing."),
-        ("Transit epoch (BKJD)",         "koi_time0bk",  100.0,  2000.0, 900.0,   1.0,  "Barycentric Kepler JD – 2454833."),
-        ("Stellar effective temperature (K)",  "koi_steff",   3000.0, 10000.0, 5700.0, 10.0,  "Star's Teff."),
-        ("Stellar log g (cgs)",               "koi_slogg",      3.0,     5.5,   4.4,   0.01, "Surface gravity."),
-        ("Stellar radius (R☉)",                "koi_srad",       0.1,    20.0,   1.0,   0.01, "In solar radii."),
-        ("Metallicity [Fe/H] (dex)",         "koi_smet",      -1.0,     0.5,   0.0,   0.01, "Relative abundance."),
-        ("Kepler magnitude",                   "koi_kepmag",     9.0,    17.5,  14.0,   0.1,  "Brightness in Kepler band."),
-        ("Duty cycle (duration/period)",     "duty_cycle",     0.0,     0.2,   0.01,  0.001,"Fraction of time in transit."),
-        ("Radius ratio rp/rs",             "rp_rs",          0.005,   0.20,  0.05,  0.001,"~√(depth)."),
+    # -------- Inputs (NO sliders, unlimited)
+    fields = [
+        ("Orbital period (days)",              "koi_period",     20.0,   0.1),
+        ("Transit duration (hours)",           "koi_duration",    5.0,   0.1),
+        ("Transit depth (ppm)",                "koi_depth",     800.0,  10.0),
+        ("Transit model SNR",                  "koi_model_snr",  20.0,   0.5),
+        ("Impact parameter (b)",               "koi_impact",      0.3,  0.01),
+        ("Transit epoch (BKJD)",               "koi_time0bk",   900.0,   1.0),
+        ("Stellar effective temperature (K)",  "koi_steff",    5700.0,  10.0),
+        ("Stellar log g (cgs)",                "koi_slogg",       4.4,  0.01),
+        ("Stellar radius (R☉)",                "koi_srad",        1.0,  0.01),
+        ("Metallicity [Fe/H] (dex)",           "koi_smet",        0.0,  0.01),
+        ("Kepler magnitude",                   "koi_kepmag",     14.0,   0.1),
+        ("Duty cycle (duration/period)",       "duty_cycle",      0.01, 0.001),
+        ("Radius ratio rp/rs",                 "rp_rs",           0.05, 0.001),
     ]
-    desired_order       = (feats if feats else [s[1] for s in slider_spec])
-    spec_by_name        = {s[1]: s for s in slider_spec}
-    slider_names_ordered= [c for c in desired_order if c in spec_by_name]
+
+    desired_order         = (feats if feats else [f[1] for f in fields])
+    # FIX: usar `key` como clave, no `k`
+    fields_by_name        = {key: (label, key, vdef, step) for (label, key, vdef, step) in fields}
+    input_names_ordered   = [c for c in desired_order if c in fields_by_name]
 
     values = {}
-    for i in range(0, len(slider_names_ordered), 2):
+    for i in range(0, len(input_names_ordered), 2):
         cA, cB = st.columns(2)
-        for col, name in zip((cA, cB), slider_names_ordered[i:i+2]):
-            label, key, vmin, vmax, vdef, step, help_ = spec_by_name[name]
-            default = st.session_state.predictor_values.get(key, vdef)
+        for col, name in zip((cA, cB), input_names_ordered[i:i+2]):
+            label, key, vdef, step = fields_by_name[name]
+            default = float(st.session_state.predictor_values.get(key, vdef))
             with col:
-                v = st.slider(label, float(vmin), float(vmax), float(default), float(step), help=help_, key=f"sl_{key}")
-                values[key] = v
+                v = st.number_input(label, value=float(default), step=float(step),
+                                    format="%.6f", key=f"ni_{key}")
+                values[key] = float(v)
 
     # -------- Build X with correct order
-    X = pd.DataFrame([[values.get(c, 0.0) for c in slider_names_ordered]], columns=slider_names_ordered)
+    X = pd.DataFrame([[values.get(c, 0.0) for c in input_names_ordered]], columns=input_names_ordered)
 
     def align_X_for(model):
         if hasattr(model, "feature_names_in_"):
@@ -791,7 +792,7 @@ def render_predictor():
             yhat = int(mdl.predict(Xi)[0])
             rows_pred.append({
                 "Model": m,
-                "Prediction": "CONFIRMED" if yhat==1 else "FALSE POSITIVE",
+                "Prediction": "Exoplanet" if yhat==1 else "Not Exoplanet",
                 "Accuracy(ref)": (None if metrics.get(m, {}).get("accuracy") is None else f"{metrics[m]['accuracy']*100:.2f}%")
             })
 
@@ -804,7 +805,7 @@ def render_predictor():
         mdl_sel  = load_model(model_name)
         Xi_sel   = align_X_for(mdl_sel)
         yhat_sel = int(mdl_sel.predict(Xi_sel)[0])
-        label_sel= "CONFIRMED" if yhat_sel == 1 else "FALSE POSITIVE"
+        label_sel= "Exoplanet" if yhat_sel == 1 else "Not Exoplanet"
         acc_show = metrics.get(model_name, {}).get("accuracy", None)
 
         msg = f"ExoCimarron ({model_name}) says: **{label_sel}** · " + \
@@ -852,7 +853,7 @@ def render_about():
         <li>Educational chat with local model</li>
         <li>Interactive light curve game</li>
         <li>Planetary transit simulator</li>
-        <li>Binary predictor (CONFIRMED vs FALSE POSITIVE) based on multiple models</li>
+        <li>Binary predictor (Exoplanet vs Not Exoplanet) based on multiple models</li>
       </ul>
       <p>Challenge: <b>A World Away (Hunting for Exoplanets with AI)</b> NASA Space Apps 2025.</p>
     </div>
