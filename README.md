@@ -9,6 +9,7 @@ The chat bot is not usable since you need a Local LLM to run it.
 
 ollama pull gemma3:latest
 
-Project still in development
+
+Project still in development and can have errors
 
 Thanks for checking it out:)
